@@ -1,0 +1,66 @@
+version: '3.7'
+
+services:
+  server:
+    build: .
+    env_file:
+      - ./judge0.conf
+    environment:
+      - BOXES_PATH=/box
+      - BOX_ROOT=/box
+    volumes:
+      - boxes:/box
+
+    ports:
+      - "2358:2358"
+    privileged: true
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+  worker:
+    build: .
+    command: [ "./scripts/workers" ]
+    env_file:
+      - ./judge0.conf
+    environment:
+      - BOXES_PATH=/box
+      - BOX_ROOT=/box
+    volumes:
+      - boxes:/box
+
+    privileged: true
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+    volumes:
+      - data:/var/lib/postgresql/data
+    restart: always
+
+  redis:
+    image: redis:7.2.4
+    command: [ "redis-server", "--requirepass", "judge0" ]
+    networks:
+      default:
+        ipv4_address: 172.25.0.5
+    restart: always
+
+volumes:
+  data:
+  boxes:
+
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

@@ -1,0 +1,155 @@
+[
+    {
+      "name": "Ankle Sprain",
+      "description": "A stretch or tear in the ligaments of the ankle.",
+      "solution": "Rest, ice, compression, and elevation (RICE)."
+    },
+    {
+      "name": "Runner's Knee",
+      "description": "Pain around the kneecap from overuse.",
+      "solution": "Rest, physical therapy, and proper footwear."
+    },
+    {
+      "name": "Tennis Elbow",
+      "description": "Inflammation of the tendons in the elbow due to repetitive motion.",
+      "solution": "Rest, ice, and physical therapy."
+    },
+    {
+      "name": "Shin Splints",
+      "description": "Pain along the shin bone caused by stress on the shinbone and tissues.",
+      "solution": "Rest, ice, and stretching exercises."
+    },
+    {
+      "name": "Hamstring Strain",
+      "description": "Overstretching or tearing of the hamstring muscles.",
+      "solution": "Rest, ice, compression, and gentle stretching."
+    },
+    {
+      "name": "Groin Pull",
+      "description": "Strain or tear in the inner thigh muscles.",
+      "solution": "Rest, ice, compression, and strengthening exercises."
+    },
+    {
+      "name": "Achilles Tendonitis",
+      "description": "Inflammation of the tendon that connects the calf muscles to the heel bone.",
+      "solution": "Rest, ice, stretching, and physical therapy."
+    },
+    {
+      "name": "Rotator Cuff Injury",
+      "description": "Damage to the muscles or tendons around the shoulder joint.",
+      "solution": "Rest, ice, physical therapy, and surgery if severe."
+    },
+    {
+      "name": "Plantar Fasciitis",
+      "description": "Inflammation of the tissue along the bottom of the foot.",
+      "solution": "Rest, ice, stretching, and orthotics."
+    },
+    {
+      "name": "Back Strain",
+      "description": "Injury to muscles or tendons in the back.",
+      "solution": "Rest, ice, gentle stretching, and pain relievers."
+    },
+    {
+        "name": "Shin Splints",
+        "description": "Pain along the shinbone caused by overuse or repetitive stress.",
+        "solution": "Rest, ice therapy, proper footwear, and stretching exercises."
+      },
+      {
+        "name": "Achilles Tendinitis",
+        "description": "Inflammation of the Achilles tendon due to overuse.",
+        "solution": "Rest, ice, heel lifts, and physical therapy."
+      },
+      {
+        "name": "Groin Pull",
+        "description": "Tearing or overstretching of the groin muscles.",
+        "solution": "Rest, ice, compression, gentle stretching, and strengthening exercises."
+      },
+      {
+        "name": "Dislocated Shoulder",
+        "description": "Injury where the upper arm bone pops out of the shoulder socket.",
+        "solution": "Medical reduction, immobilization, and physical therapy."
+      },
+      {
+        "name": "Bursitis",
+        "description": "Inflammation of the bursae (small fluid-filled sacs) that cushion joints.",
+        "solution": "Rest, ice, anti-inflammatory medications, and physical therapy."
+      },
+      {
+        "name": "Patellar Tendinitis",
+        "description": "Inflammation of the tendon connecting the kneecap to the shinbone.",
+        "solution": "Rest, ice, strengthening exercises, and physical therapy."
+      },
+      {
+        "name": "Tennis Elbow",
+        "description": "Overuse injury causing pain in the elbow and forearm.",
+        "solution": "Rest, ice, braces, and physical therapy."
+      },
+      {
+        "name": "Hamstring Strain",
+        "description": "Injury to the muscles at the back of the thigh.",
+        "solution": "Rest, ice, compression, and gradual stretching."
+      },
+      {
+        "name": "Labral Tear",
+        "description": "Injury to the cartilage surrounding the hip or shoulder joint.",
+        "solution": "Rest, anti-inflammatory medication, and possible surgery."
+      },
+      {
+        "name": "Meniscus Tear",
+        "description": "Tear of the cartilage in the knee.",
+        "solution": "Rest, ice, physical therapy, and possible surgery."
+      },
+      {
+        "name": "Stress Fracture",
+        "description": "Small cracks in a bone caused by repetitive force.",
+        "solution": "Rest, avoiding weight-bearing activities, and protective footwear."
+      },
+      {
+        "name": "Hip Flexor Strain",
+        "description": "Injury to the muscles that help raise your knee.",
+        "solution": "Rest, ice, stretching, and strengthening exercises."
+      },
+      {
+        "name": "IT Band Syndrome",
+        "description": "Irritation of the iliotibial band, causing lateral knee pain.",
+        "solution": "Rest, stretching, foam rolling, and physical therapy."
+      },
+      {
+        "name": "Ankle Sprain",
+        "description": "Stretching or tearing of ligaments in the ankle.",
+        "solution": "Rest, ice, compression, elevation (RICE method)."
+      },
+      {
+        "name": "Costochondritis",
+        "description": "Inflammation of the cartilage connecting a rib to the sternum.",
+        "solution": "Rest, anti-inflammatory medications, and physical therapy."
+      },
+      {
+        "name": "Plantar Fasciitis",
+        "description": "Inflammation of the plantar fascia tissue on the foot sole.",
+        "solution": "Rest, ice, arch supports, and stretching exercises."
+      },
+      {
+        "name": "Quadriceps Strain",
+        "description": "Injury to the front thigh muscles.",
+        "solution": "Rest, ice, compression, and strengthening exercises."
+      },
+      {
+        "name": "Rotator Cuff Tear",
+        "description": "Tearing of the muscles/tendons stabilizing the shoulder.",
+        "solution": "Rest, physical therapy, and possible surgery."
+      },
+      {
+        "name": "Whiplash",
+        "description": "Neck injury from sudden, forceful movement.",
+        "solution": "Rest, neck exercises, pain relievers, and physical therapy."
+      },
+      {
+        "name": "Ulnar Nerve Entrapment",
+        "description": "Compression of the ulnar nerve in the elbow or wrist.",
+        "solution": "Rest, splinting, physical therapy, and possible surgery."
+      }
+    
+    
+  ]
+  
