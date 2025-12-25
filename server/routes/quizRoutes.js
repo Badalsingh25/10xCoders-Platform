@@ -5,7 +5,7 @@ const { protect } = require('../middleware/authMiddleware');
 const QuizAttempt = require('../models/quizModel');
 
 // Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSy...");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // @desc    Generate a Quiz (Topic or Resume based)
 // @route   POST /api/quiz/generate
@@ -14,7 +14,7 @@ router.post('/generate', protect, async (req, res) => {
     const { type, topic, difficulty, count = 5, resumeSkills } = req.body;
 
     // Use environment variable or fallback to known working key (Debugging mechanism)
-    const apiKey = process.env.GEMINI_API_KEY || "AIzaSyDJaXRW4m64zYRS1J74UaYIEFnJkmiYboc";
+    const apiKey = process.env.GEMINI_API_KEY;
     const localGenAI = new GoogleGenerativeAI(apiKey);
 
     try {
@@ -133,7 +133,7 @@ router.post('/analyze', protect, async (req, res) => {
 
         // Prepare prompt for AI
         // Use environment variable or fallback to known working key (Debugging mechanism)
-        const apiKey = process.env.GEMINI_API_KEY || "AIzaSyDJaXRW4m64zYRS1J74UaYIEFnJkmiYboc";
+        const apiKey = process.env.GEMINI_API_KEY;
         const localGenAI = new GoogleGenerativeAI(apiKey);
         const model = localGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const mistakesText = wrongAnswers.map(q => `Question: ${q.question} | Correct: ${q.correctAnswer}`).join('\n');

@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 // Initialize Gemini
 // Ensure VITE_GEMINI_API_KEY or GEMINI_API_KEY is available in .env
 // The user might have put it in client .env (VITE_), so we should check both or assume server .env has it
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || "AIzaSyDJaXRW4m64zYRS1J74UaYIEFnJkmiYboc");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 // Context Prompts

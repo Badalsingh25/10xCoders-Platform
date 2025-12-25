@@ -29,7 +29,7 @@ const upload = multer({ storage });
 
 // Initialize Gemini
 // Fallback key logic similar to quizRoutes
-const apiKey = process.env.GEMINI_API_KEY || "AIzaSyDJaXRW4m64zYRS1J74UaYIEFnJkmiYboc";
+const apiKey = process.env.GEMINI_API_KEY;
 const localGenAI = new GoogleGenerativeAI(apiKey);
 
 // Helper to convert file to GenerativePart
