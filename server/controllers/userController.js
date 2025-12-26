@@ -364,7 +364,7 @@ exports.updateCourseProgress = async (req, res) => {
 // ==========================
 exports.saveResume = async (req, res) => {
   const { title } = req.body;
-  const fileUrl = req.file ? `http://localhost:5001/uploads/${req.file.filename}` : null;
+  const fileUrl = req.file ? `/uploads/${req.file.filename}` : null;
   try {
     const user = await User.findById(req.user.id);
     user.savedResumes.push({
@@ -409,7 +409,7 @@ exports.updateProfile = async (req, res) => {
 
       // Handle File Upload or URL
       if (req.file) {
-        user.avatar = `http://localhost:5001/uploads/${req.file.filename}`;
+        user.avatar = `/uploads/${req.file.filename}`;
       } else if (req.body.avatar) {
         user.avatar = req.body.avatar;
       }
@@ -442,7 +442,7 @@ exports.updateProfile = async (req, res) => {
 // ==========================
 exports.saveCertificate = async (req, res) => {
   const { title } = req.body;
-  const fileUrl = req.file ? `http://localhost:5001/uploads/${req.file.filename}` : null;
+  const fileUrl = req.file ? `/uploads/${req.file.filename}` : null;
   try {
     const user = await User.findById(req.user.id);
     const certTitle = title || (req.file ? req.file.originalname : 'Untitled Certificate');

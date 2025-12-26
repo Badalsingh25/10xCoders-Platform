@@ -115,7 +115,7 @@ const Settings = () => {
                         <div className="flex flex-col items-center sm:flex-row gap-6">
                             <div className="relative group">
                                 <img
-                                    src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`}
+                                    src={selectedFile ? URL.createObjectURL(selectedFile) : (user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${user.avatar}`) : `https://ui-avatars.com/api/?name=${user.name}`)}
                                     alt="Profile"
                                     className="h-24 w-24 rounded-full object-cover border-4 border-slate-50 dark:border-slate-800 shadow-sm"
                                 />
