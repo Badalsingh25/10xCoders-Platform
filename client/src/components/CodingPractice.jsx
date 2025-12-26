@@ -79,6 +79,15 @@ const MachineCode = () => {
       template: 'def main():\n    # Write your code here\n    pass\n\nif __name__ == "__main__":\n    main()\n',
       solution: 'print("Hello, World!")',
       solved: false
+    },
+    {
+      id: 8,
+      title: "Javascript Console Log",
+      description: "Write a Javascript program that prints 'Hello, World!' to the console.",
+      language: "javascript",
+      template: 'console.log("Hello, World!");',
+      solution: 'console.log("Hello, World!");',
+      solved: false
     }
   ];
 
@@ -284,12 +293,166 @@ const MachineCode = () => {
           <select
             className={`px-3 py-1.5 rounded-md text-sm font-medium border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${theme === 'dark' ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'bg-gray-50 border-gray-300 hover:bg-gray-100'}`}
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={(e) => {
+              const lang = e.target.value;
+              setLanguage(lang);
+              if (lang === 'javascript') {
+                setCode(`process.stdin.resume();
+process.stdin.setEncoding("utf8");
+
+let input = "";
+
+process.stdin.on("data", function (data) {
+  input += data;
+});
+
+process.stdin.on("end", function () {
+  // Your code here
+  let n = parseInt(input.trim());
+  if (isNaN(n)) {
+      console.log("Hello World");
+      return;
+  }
+  
+  // Example: Factorial
+  let fact = 1;
+  for (let i = 1; i <= n; i++) {
+    fact *= i;
+  }
+  console.log(fact);
+});`);
+              }
+              else if (lang === 'python') {
+                setCode(`import sys
+
+def main():
+    # Read all input from stdin
+    input_data = sys.stdin.read().strip()
+    
+    if not input_data:
+        print("Hello World")
+        return
+
+    # Example: Factorial logic
+    try:
+        n = int(input_data)
+        fact = 1
+        for i in range(1, n + 1):
+            fact *= i
+        print(fact)
+    except ValueError:
+        print("Invalid input")
+
+if __name__ == "__main__":
+    main()`);
+              }
+              else if (lang === 'java') {
+                setCode(`import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        
+        if (sc.hasNextInt()) {
+            int n = sc.nextInt();
+            long fact = 1;
+            for(int i = 1; i <= n; i++) {
+                fact *= i;
+            }
+            System.out.println(fact);
+        } else {
+            System.out.println("Hello World");
+        }
+    }
+}`);
+              }
+              else if (lang === 'c') {
+                setCode(`#include <stdio.h>
+
+int main() {
+    int n;
+    // Check if input is available
+    if (scanf("%d", &n) == 1) {
+        long long fact = 1;
+        for(int i = 1; i <= n; i++) {
+            fact *= i;
+        }
+        printf("%lld", fact);
+    } else {
+        printf("Hello World\\n");
+    }
+    return 0;
+}`);
+              }
+              else if (lang === 'cpp') {
+                setCode(`#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    // Check if input is available
+    if (cin >> n) {
+        long long fact = 1;
+        for(int i = 1; i <= n; i++) {
+            fact *= i;
+        }
+        cout << fact;
+    } else {
+        cout << "Hello World" << endl;
+    }
+    return 0;
+}`);
+              }
+              else if (lang === 'php') {
+                setCode(`<?php
+// Read from stdin
+$input = trim(fgets(STDIN));
+
+if (is_numeric($input)) {
+    $n = intval($input);
+    $fact = 1;
+    for ($i = 1; $i <= $n; $i++) {
+        $fact *= $i;
+    }
+    echo $fact;
+} else {
+    echo "Hello World";
+}
+?>`);
+              }
+              else if (lang === 'csharp') {
+                setCode(`using System;
+
+public class HelloWorld {
+    public static void Main(string[] args) {
+        string input = Console.ReadLine();
+        
+        if (!string.IsNullOrEmpty(input)) {
+             try {
+                 int n = int.Parse(input);
+                 long fact = 1;
+                 for(int i = 1; i <= n; i++) {
+                     fact *= i;
+                 }
+                 Console.WriteLine(fact);
+             } catch {
+                 Console.WriteLine("Invalid Input");
+             }
+        } else {
+            Console.WriteLine("Hello World");
+        }
+    }
+}`);
+              }
+            }}
           >
             <option value="c">C</option>
             <option value="cpp">C++</option>
             <option value="java">Java</option>
             <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="php">PHP</option>
+            <option value="csharp">C#</option>
           </select>
           {/* Theme Toggle */}
           <button

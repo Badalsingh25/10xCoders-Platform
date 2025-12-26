@@ -3,48 +3,60 @@ const router = express.Router();
 const axios = require('axios');
 
 // Judge0 Language ID Mapping
-const LANGUAGE_MAP = {
-    'c': 50,
-    'cpp': 54, // C++ (GCC 9.2.0)
-    'java': 62, // Java (OpenJDK 13.0.1)
-    'python': 71, // Python (3.8.1)
+// Piston Language Map
+const PISTON_RUNTIMES = {
+    'c': { language: 'c', version: '10.2.0' },
+    'cpp': { language: 'c++', version: '10.2.0' },
+    'java': { language: 'java', version: '15.0.2' },
+    'python': { language: 'python', version: '3.10.0' },
+    'javascript': { language: 'javascript', version: '18.15.0' }, // Node.js
+    'php': { language: 'php', version: '8.2.3' },
+    'csharp': { language: 'csharp', version: '6.12.0' }, // Mono
 };
-
-const JUDGE0_URL = process.env.JUDGE0_URL || 'http://localhost:2358';
 
 router.post('/execute', async (req, res) => {
     try {
         const { source_code, language, stdin } = req.body;
 
-        const language_id = LANGUAGE_MAP[language.toLowerCase()];
+        const runtime = PISTON_RUNTIMES[language.toLowerCase()];
 
-        if (!language_id) {
+        if (!runtime) {
             return res.status(400).json({ error: 'Unsupported language' });
         }
 
-        const validJudgeUrl = JUDGE0_URL.endsWith('/') ? JUDGE0_URL.slice(0, -1) : JUDGE0_URL;
-
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-
-        // If using RapidAPI
-        if (process.env.RAPIDAPI_KEY) {
-            headers['X-RapidAPI-Key'] = process.env.RAPIDAPI_KEY;
-            headers['X-RapidAPI-Host'] = process.env.RAPIDAPI_HOST || 'judge0-ce.p.rapidapi.com';
-        }
-
-        const response = await axios.post(`${validJudgeUrl}/submissions?wait=true`, {
-            source_code,
-            language_id,
+        // Use Piston Public API
+        const response = await axios.post('https://emkc.org/api/v2/piston/execute', {
+            language: runtime.language,
+            version: runtime.version,
+            files: [
+                {
+                    content: source_code
+                }
+            ],
             stdin: stdin || ""
         }, {
-            headers: headers
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
-        res.json(response.data);
+        const data = response.data;
+
+        // Map Piston response to Judge0 format for frontend compatibility
+        // Piston structure: { run: { stdout: "...", stderr: "...", code: 0 } }
+        const result = {
+            stdout: data.run.stdout,
+            stderr: data.run.stderr,
+            compile_output: data.compile ? data.compile.stderr : '', // Piston puts compile errors in compile object
+            status: {
+                description: data.run.code === 0 ? 'Accepted' : 'Runtime Error' // Simplified status
+            }
+        };
+
+        res.json(result);
+
     } catch (error) {
-        console.error('Judge0 Proxy Error:', error.response ? error.response.data : error.message);
+        console.error('Piston Execution Error:', error.response ? error.response.data : error.message);
         res.status(500).json({
             error: 'Failed to execute code',
             details: error.response ? error.response.data : error.message
