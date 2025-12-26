@@ -22,14 +22,24 @@ router.post('/execute', async (req, res) => {
             return res.status(400).json({ error: 'Unsupported language' });
         }
 
-        const response = await axios.post(`${JUDGE0_URL}/submissions?wait=true`, {
+        const validJudgeUrl = JUDGE0_URL.endsWith('/') ? JUDGE0_URL.slice(0, -1) : JUDGE0_URL;
+
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        // If using RapidAPI
+        if (process.env.RAPIDAPI_KEY) {
+            headers['X-RapidAPI-Key'] = process.env.RAPIDAPI_KEY;
+            headers['X-RapidAPI-Host'] = process.env.RAPIDAPI_HOST || 'judge0-ce.p.rapidapi.com';
+        }
+
+        const response = await axios.post(`${validJudgeUrl}/submissions?wait=true`, {
             source_code,
             language_id,
             stdin: stdin || ""
         }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: headers
         });
 
         res.json(response.data);
