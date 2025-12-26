@@ -26,8 +26,13 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
         { name: 'System Design', progress: 30, color: 'bg-lime-500' },
     ];
 
-    // Use stats skills if available. If Dashboard & empty, use empty array. If Home & empty, use demo.
-    const skills = stats?.skills?.length > 0 ? stats.skills : (isDashboard ? [] : demoSkills);
+    // Use stats skills if available. If Dashboard & empty, use default breakdown.
+    const defaultBreakdown = [
+        { name: 'HTML', progress: 0 }, { name: 'CSS', progress: 0 }, { name: 'JavaScript', progress: 0 }, { name: 'React', progress: 0 }
+    ];
+    // Fix: If backend sends "General" (old logic), force default breakdown.
+    const rawSkills = stats?.skills?.length > 0 ? stats.skills : [];
+    const skills = (rawSkills.length === 1 && rawSkills[0].name === 'General') ? defaultBreakdown : (rawSkills.length > 0 ? rawSkills : (isDashboard ? defaultBreakdown : demoSkills));
 
     // Smart Color Logic helper - Enforcing Green Theme
     const getSkillColor = (progress) => {
@@ -143,8 +148,8 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
                         </div>
 
                         <div className="relative h-64 flex justify-center items-center">
-                            {/* Outer Glow Ring */}
-                            <div className="absolute w-[220px] h-[220px] rounded-full border-2 border-emerald-100 dark:border-emerald-900/30 blur-sm animate-pulse"></div>
+                            {/* Simple clean background ring */}
+                            <div className="absolute w-[200px] h-[200px] rounded-full border-[10px] border-slate-100 dark:border-slate-700"></div>
 
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
