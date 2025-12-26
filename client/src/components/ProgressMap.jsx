@@ -135,7 +135,11 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Trophy className="text-yellow-500" size={24} /> Overall Progress
                             </h3>
-                            <span className="text-sm font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full">Total Courses: 12</span>
+                            {stats?.gamification && (
+                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full uppercase tracking-wider">
+                                    {stats.gamification.level} • {stats.gamification.points} XP
+                                </span>
+                            )}
                         </div>
 
                         <div className="relative h-64 flex justify-center items-center">
@@ -178,7 +182,7 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
                         </div>
                     </motion.div>
 
-                    {/* 2. Skill-Wise Progress & Smart Insights */}
+                    {/* 2. Skill-Wise Progress (Premium Design) */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -186,53 +190,52 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
                         transition={{ delay: 0.2 }}
                         className={`${isDashboard ? 'xl:col-span-1' : 'lg:col-span-2'} bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between`}
                     >
-                        <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Zap className="text-emerald-500" size={24} /> Skill Mastery
+                                <Zap className="text-yellow-500" size={24} /> Skill Mastery
                             </h3>
-                            <button className="text-emerald-600 dark:text-emerald-400 text-sm font-bold hover:underline">View Details</button>
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Global Rank</span>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-5">
                             {skills.map((skill, idx) => (
-                                <div key={idx} className="group cursor-default">
-                                    <div className="flex justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-slate-700 dark:text-slate-300">{skill.name}</span>
-                                            <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                Last improved 2d ago
-                                            </span>
-                                        </div>
-                                        <span className={`font-bold ${skill.progress >= 80 ? 'text-emerald-600' : 'text-emerald-500'
-                                            }`}>
+                                <div key={idx} className="group">
+                                    <div className="flex justify-between items-end mb-2">
+                                        <span className="font-bold text-slate-700 dark:text-slate-300 text-sm tracking-wide">{skill.name}</span>
+                                        <span className={`font-mono font-bold text-lg ${skill.progress >= 80 ? 'text-yellow-500' : 'text-slate-600 dark:text-slate-400'}`}>
                                             {skill.progress}%
                                         </span>
                                     </div>
-                                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                                    <div className="w-full h-8 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] bg-slate-100 dark:bg-slate-700/50 rounded-sm relative overflow-hidden border border-slate-200 dark:border-slate-600">
                                         <motion.div
                                             initial={{ width: 0 }}
                                             whileInView={{ width: `${skill.progress}%` }}
                                             viewport={{ once: true }}
-                                            transition={{ duration: 1.5, ease: "circOut" }}
-                                            className={`h-full ${getSkillColor(skill.progress)} rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)]`}
-                                        ></motion.div>
+                                            transition={{ duration: 1.2, ease: "easeOut" }}
+                                            className={`h-full ${skill.progress >= 80 ? 'bg-slate-800 dark:bg-white' : 'bg-slate-600 dark:bg-slate-400'} relative`}
+                                        >
+                                            {/* Striped Pattern Overlay */}
+                                            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.1)_50%,rgba(255,255,255,0.1)_75%,transparent_75%,transparent)] bg-[length:10px_10px]"></div>
+                                        </motion.div>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        {/* AI Coach Insight Card */}
-                        <div className="mt-8 p-5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer">
-                            <div className="bg-white dark:bg-emerald-900/50 p-3 rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-800 text-2xl">
-                                🤖
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                                    AI Coach Insight <span className="text-emerald-600 text-xs bg-emerald-100 px-2 py-0.5 rounded-full">High Confidence</span>
-                                </h4>
-                                <p className="text-slate-600 dark:text-slate-300 text-sm mt-2 leading-relaxed">
-                                    "You're improving rapidly in <strong className="text-emerald-600 dark:text-emerald-400">Java</strong>! 🚀 Complete 2 more medium-level challenges to unlock the <strong>'Advanced Backend Badge'</strong>."
-                                </p>
+                        {/* Gamification / Next Badge */}
+                        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase mb-1">Next Milestone</p>
+                                    <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                        <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">GOLD</span>
+                                        React Master
+                                    </h4>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs text-slate-400">Points to go</p>
+                                    <p className="font-mono font-bold text-emerald-500">+120 XP</p>
+                                </div>
                             </div>
                         </div>
                     </motion.div>

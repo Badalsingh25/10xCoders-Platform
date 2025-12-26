@@ -17,16 +17,21 @@ const saveInterviewAttempt = asyncHandler(async (req, res) => {
         feedback
     });
 
-    // Log Activity
-    await User.findByIdAndUpdate(req.user.id, {
-        $push: {
-            activityLog: {
-                action: 'interview_attempt',
-                details: `Interview Question: ${question.substring(0, 30)}...`,
-                timestamp: new Date()
-            }
-        }
+    // Log Activity & Award Points (+15 for Interview)
+    const user = await User.findById(req.user.id);
+    user.gamification = user.gamification || { points: 0, level: 'Beginner', badges: [] };
+    user.gamification.points += 15;
+
+    // Level Up Logic
+    if (user.gamification.points >= 500) user.gamification.level = 'Pro';
+    else if (user.gamification.points >= 100) user.gamification.level = 'Intermediate';
+
+    user.activityLog.push({
+        action: 'interview_attempt',
+        details: `Interview Question: ${question.substring(0, 30)}... (+15 XP)`,
+        timestamp: new Date()
     });
+    await user.save();
 
     res.status(201).json(attempt);
 });
@@ -60,16 +65,21 @@ const saveRoadmapProgress = asyncHandler(async (req, res) => {
         });
     }
 
-    // Log Activity
-    await User.findByIdAndUpdate(req.user.id, {
-        $push: {
-            activityLog: {
-                action: 'roadmap_progress',
-                details: `Updated Roadmap: ${roadmap.substring(0, 20)}...`,
-                timestamp: new Date()
-            }
-        }
+    // Log Activity & Award Points (+10 for Roadmap)
+    const user = await User.findById(req.user.id);
+    user.gamification = user.gamification || { points: 0, level: 'Beginner', badges: [] };
+    user.gamification.points += 10;
+
+    // Level Up Logic
+    if (user.gamification.points >= 500) user.gamification.level = 'Pro';
+    else if (user.gamification.points >= 100) user.gamification.level = 'Intermediate';
+
+    user.activityLog.push({
+        action: 'roadmap_progress',
+        details: `Updated Roadmap: ${roadmap.substring(0, 20)}... (+10 XP)`,
+        timestamp: new Date()
     });
+    await user.save();
 
     res.status(200).json(progress);
 });
@@ -98,16 +108,21 @@ const saveTypingTest = asyncHandler(async (req, res) => {
         accuracy
     });
 
-    // Log Activity
-    await User.findByIdAndUpdate(req.user.id, {
-        $push: {
-            activityLog: {
-                action: 'typing_test',
-                details: `Typing Test: ${wpm} WPM`,
-                timestamp: new Date()
-            }
-        }
+    // Log Activity & Award Points (+5 for Typing)
+    const user = await User.findById(req.user.id);
+    user.gamification = user.gamification || { points: 0, level: 'Beginner', badges: [] };
+    user.gamification.points += 5;
+
+    // Level Up Logic
+    if (user.gamification.points >= 500) user.gamification.level = 'Pro';
+    else if (user.gamification.points >= 100) user.gamification.level = 'Intermediate';
+
+    user.activityLog.push({
+        action: 'typing_test',
+        details: `Typing Test: ${wpm} WPM (+5 XP)`,
+        timestamp: new Date()
     });
+    await user.save();
 
     res.status(201).json(test);
 });

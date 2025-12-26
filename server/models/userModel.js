@@ -80,7 +80,13 @@ const userSchema = mongoose.Schema(
       theme: { type: String, default: 'light' },
       emailNotifications: { type: Boolean, default: true }
     },
-    reputation: { type: Number, default: 0 }
+    reputation: { type: Number, default: 0 },
+    gamification: {
+      points: { type: Number, default: 0 },
+      level: { type: String, default: 'Beginner' },
+      badges: [{ type: String }],
+      weeklyGoal: { type: Number, default: 5 }
+    }
   },
   {
     timestamps: true,

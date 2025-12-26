@@ -310,27 +310,43 @@ exports.getMe = async (req, res) => {
     };
 
     // --- Enhanced Stats from New Features ---
+    // --- Enhanced Stats from New Features ---
     const interviewCount = await InterviewAttempt.countDocuments({ userId: req.user.id });
     const typingCount = await TypingTest.countDocuments({ userId: req.user.id });
     // Fetch latest typing WPM
     const lastTyping = await TypingTest.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
 
-    // Add Interview Skill
-    if (interviewCount > 0) {
-      skillMap['Problem Solving'] = { total: interviewCount * 25, count: 1 }; // Boost skill
-    }
-    // Add Typing Skill
-    if (typingCount > 0 && lastTyping) {
-      skillMap['Typing'] = { total: Math.min(100, lastTyping.wpm), count: 1 };
-    }
+    // Calculate Points Influence
+    const points = user.gamification ? user.gamification.points : 0;
 
-    // Re-process skills with new data
-    userObj.dashboardStats.skills = Object.keys(skillMap).map(key => ({
-      name: key,
-      progress: Math.min(100, Math.round(skillMap[key].total / skillMap[key].count)),
-      color: (Math.round(skillMap[key].total / skillMap[key].count) > 75) ? 'bg-emerald-500' :
-        (Math.round(skillMap[key].total / skillMap[key].count) > 40) ? 'bg-indigo-500' : 'bg-amber-500'
-    })).sort((a, b) => b.progress - a.progress);
+    // Defined Skill Set (Requested by User)
+    const breakdown = [
+      { name: 'HTML', base: 30, factor: 0.5 },
+      { name: 'CSS', base: 25, factor: 0.4 },
+      { name: 'JavaScript', base: 15, factor: 0.3 },
+      { name: 'React', base: 10, factor: 0.25 },
+      { name: 'Backend', base: 5, factor: 0.2 }
+    ];
+
+    userObj.dashboardStats.skills = breakdown.map(skill => {
+      // Boost if they have a related course
+      const courseBoost = user.courses.some(c => c.title && c.title.toLowerCase().includes(skill.name.toLowerCase())) ? 20 : 0;
+      // Boost by interview/typing
+      const extraBoost = (skill.name === 'Backend' && interviewCount > 0) ? 10 : (skill.name === 'JavaScript' && typingCount > 0) ? 5 : 0;
+
+      const progress = Math.min(100, Math.round(skill.base + (points * skill.factor) + courseBoost + extraBoost));
+
+      // Premium Colors
+      let color = 'bg-slate-400';
+      if (progress >= 80) color = 'bg-yellow-500'; // Master
+      else if (progress >= 60) color = 'bg-emerald-500'; // Advanced
+      else if (progress >= 40) color = 'bg-indigo-500'; // Intermediate
+
+      return { name: skill.name, progress, color };
+    });
+
+    // Add Gamification Stats to dashboardStats
+    userObj.dashboardStats.gamification = user.gamification || { points: 0, level: 'Beginner', badges: [] };
 
     // Dynamic Recommendation
     let recTitle = "Start a New Course";
