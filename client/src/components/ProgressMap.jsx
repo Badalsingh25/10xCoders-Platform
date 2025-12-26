@@ -241,62 +241,53 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
                     </motion.div>
 
                     {/* 3. Learning Path Roadmap (Full Width & Interactive) */}
+                    {/* 3. Achievements & Badges Collection (Replaces Roadmap) */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.3 }}
-                        className={`${isDashboard ? 'xl:col-span-2' : 'lg:col-span-3'} bg-emerald-600 rounded-3xl p-8 text-white relative overflow-hidden`}
+                        className={`${isDashboard ? 'xl:col-span-2' : 'lg:col-span-3'} bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden`}
                     >
-                        {/* Background Decoration */}
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-
-                        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-4">
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
                             <div>
-                                <h3 className="text-2xl font-bold flex items-center gap-3">
-                                    Full Stack Roadmap Progress
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Trophy className="text-yellow-500" size={24} /> Recent Achievements
                                 </h3>
-                                <p className="text-emerald-100 mt-1">{overallValue > 0 ? "You're making good progress! Keep it up." : "Start your journey to unlock this roadmap."}</p>
+                                <p className="text-sm text-slate-500 mt-1">Earn badges by completing challenges and maintaining streaks.</p>
                             </div>
-                            <button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm transition px-4 py-2 rounded-lg text-sm font-semibold">
-                                View Full Path
+                            <button className="text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:underline">
+                                View All Badges
                             </button>
                         </div>
 
-                        <div className="relative z-10 w-full py-8">
-                            {/* Connecting Line */}
-                            <div className="absolute top-1/2 left-0 right-0 h-1 bg-emerald-800/50 -translate-y-1/2 rounded-full mx-6 md:mx-8"></div>
-                            <div className="absolute top-1/2 left-0 w-[20%] h-1 bg-white -translate-y-1/2 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.5)] mx-6 md:mx-8"></div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {/* Demo Badges Logic */}
+                            {[
+                                { name: 'First Steps', icon: '🌱', earned: true, desc: 'Joined the platform' },
+                                { name: 'Code Warrior', icon: '💻', earned: overallValue > 10, desc: 'Completed 10% Course' },
+                                { name: 'Streak Master', icon: '🔥', earned: false, desc: '7 Day Streak' },
+                                { name: 'Bug Hunter', icon: '🐛', earned: false, desc: 'Solve 5 Challenges' },
+                                { name: 'Interview Pro', icon: '🎙️', earned: stats?.gamification?.points > 100, desc: 'Earn 100 XP' }
+                            ].map((badge, idx) => (
+                                <div key={idx} className={`p-4 rounded-2xl border transition-all relative group
+                                    ${badge.earned
+                                        ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/10 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-800/30'
+                                        : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 grayscale opacity-70'}`}>
 
-                            <div className="flex justify-between relative w-full px-0 sm:px-2">
-                                {roadmap.map((item, idx) => (
-                                    <div key={idx} className={`relative flex flex-col items-center group ${item.status === 'locked' ? 'opacity-70 blur-[0.5px] hover:blur-none transition-all' : ''}`}>
+                                    <div className="text-3xl mb-3">{badge.icon}</div>
+                                    <h4 className={`font-bold text-sm mb-1 ${badge.earned ? 'text-slate-900 dark:text-yellow-100' : 'text-slate-500'}`}>
+                                        {badge.name}
+                                    </h4>
+                                    <p className="text-[10px] text-slate-500 leading-tight">{badge.desc}</p>
 
-                                        {/* Status Icon Circle */}
-                                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold border-4 transition-all z-10 shadow-lg cursor-pointer
-                                            ${item.status === 'completed' ? 'bg-white text-emerald-600 border-white scale-100' :
-                                                item.status === 'in-progress' ? 'bg-emerald-600 text-white border-white scale-110 shadow-[0_0_20px_rgba(255,255,255,0.4)] animate-pulse-slow' :
-                                                    'bg-emerald-900 border-emerald-800 text-white/30'}`}
-                                        >
-                                            {item.status === 'completed' ? <CheckCircle size={24} strokeWidth={3} /> :
-                                                item.status === 'locked' ? <Lock size={20} /> :
-                                                    idx + 1}
+                                    {!badge.earned && (
+                                        <div className="absolute top-2 right-2 text-slate-300">
+                                            <Lock size={12} />
                                         </div>
-
-                                        {/* Label */}
-                                        <div className={`absolute top-20 flex flex-col items-center transition-all duration-300
-                                            ${item.status === 'in-progress' ? '-translate-y-1' : ''}`}>
-                                            <span className={`text-sm font-bold whitespace-nowrap px-3 py-1 rounded-full 
-                                                ${item.status === 'in-progress' ? 'bg-white text-emerald-700 shadow-md' : 'text-white'}`}>
-                                                {item.step}
-                                            </span>
-                                            {item.status === 'locked' && (
-                                                <span className="text-[10px] text-emerald-200 mt-1 uppercase tracking-wider">Locked</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </motion.div>
 
