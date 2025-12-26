@@ -44,7 +44,7 @@ const Quiz = () => {
         setStep('loading');
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5001/api/quiz/generate', config, {
+            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/quiz/generate`, config, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setQuizData(res.data);
@@ -84,7 +84,7 @@ const Quiz = () => {
 
         try {
             // 1. Get AI Analysis
-            const analyzeRes = await axios.post('http://localhost:5001/api/quiz/analyze', {
+            const analyzeRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/quiz/analyze`, {
                 topic: config.topic || "Skills Assessment",
                 questions: quizData,
                 userAnswers: answers
@@ -94,7 +94,7 @@ const Quiz = () => {
             setAnalysis({ ...analysisResult, score, correctCount });
 
             // 2. Save Result
-            await axios.post('http://localhost:5001/api/quiz/submit', {
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/quiz/submit`, {
                 topic: config.topic || "Resume Skills",
                 difficulty: config.difficulty,
                 score,
@@ -262,8 +262,8 @@ const Quiz = () => {
                                         key={idx}
                                         onClick={() => handleAnswer(option)}
                                         className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${answers[currentQuestion] === option
-                                                ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20 text-pink-900 dark:text-pink-100'
-                                                : 'border-slate-100 dark:border-slate-700 hover:border-pink-200 dark:hover:border-slate-600 bg-slate-50 dark:bg-slate-800/50'
+                                            ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20 text-pink-900 dark:text-pink-100'
+                                            : 'border-slate-100 dark:border-slate-700 hover:border-pink-200 dark:hover:border-slate-600 bg-slate-50 dark:bg-slate-800/50'
                                             }`}
                                     >
                                         <span className={`dark:text-slate-300 ${answers[currentQuestion] === option ? 'font-medium' : ''}`}>
@@ -350,8 +350,8 @@ const Quiz = () => {
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white px-2">Review Answers</h3>
                             {quizData.map((q, idx) => (
                                 <div key={idx} className={`p-6 rounded-2xl border ${answers[idx] === q.correctAnswer
-                                        ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
-                                        : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'
+                                    ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
+                                    : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'
                                     }`}>
                                     <div className="flex gap-4">
                                         <div className="mt-1">

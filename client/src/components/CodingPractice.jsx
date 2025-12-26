@@ -139,7 +139,7 @@ const MachineCode = () => {
     setOutputHistory(prev => [...prev, commandEntry]);
 
     try {
-      const response = await fetch('http://localhost:5001/api/judge/execute', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/judge/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -269,7 +269,7 @@ const MachineCode = () => {
     // Update every 30 seconds (0.5 minutes = 0.5/60 = 1/120 hours)
     const interval = setInterval(async () => {
       try {
-        await axios.put('http://localhost:5001/api/users/coding-hours', {
+        const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/ai/ask`, {
           hours: 1 / 120
         }, {
           headers: { Authorization: `Bearer ${token}` }

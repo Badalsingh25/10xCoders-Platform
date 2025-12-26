@@ -74,7 +74,7 @@ const Navbar = () => {
 
     const fetchUser = async (token) => {
         try {
-            const res = await axios.get('http://localhost:5001/api/users/me', {
+            const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUser(res.data);
@@ -105,7 +105,7 @@ const Navbar = () => {
         try {
             const token = localStorage.getItem('token');
             if (token) {
-                await axios.put('http://localhost:5001/api/users/notifications/read', {}, {
+                await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/notifications/read`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }

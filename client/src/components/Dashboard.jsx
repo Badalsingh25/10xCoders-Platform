@@ -65,10 +65,10 @@ const Dashboard = () => {
     const fetchUserData = async (token) => {
         try {
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            const response = await axios.get('http://localhost:5001/api/users/me', config);
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/me`, config);
             setUserData(response.data);
 
-            const postsRes = await axios.get('http://localhost:5001/api/community/unanswered', config);
+            const postsRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/unanswered`, config);
             setUnansweredPosts(postsRes.data);
 
             setLoading(false);
@@ -104,7 +104,7 @@ const Dashboard = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             };
-            await axios.post('http://localhost:5001/api/users/resume', formData, config);
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/resume`, formData, config);
 
             await fetchUserData(localStorage.getItem('token'));
             setShowResumeModal(false);
@@ -130,7 +130,7 @@ const Dashboard = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             };
-            await axios.post('http://localhost:5001/api/users/certificate', formData, config);
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/certificate`, formData, config);
 
             await fetchUserData(localStorage.getItem('token'));
             setShowCertificateModal(false);
@@ -152,7 +152,7 @@ const Dashboard = () => {
         if (!window.confirm("Are you sure you want to delete this item?")) return;
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5001/api/users/${type}/${id}`, {
+            await axios.delete(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/${type}/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             await fetchUserData(token);

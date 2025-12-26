@@ -21,7 +21,7 @@ const Settings = () => {
             const token = localStorage.getItem('token');
             if (!token) return;
             try {
-                const res = await axios.get('http://localhost:5001/api/users/me', {
+                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUser(prev => ({ ...prev, ...res.data, password: '' }));
@@ -71,7 +71,7 @@ const Settings = () => {
                 formData.append('avatar', user.avatar);
             }
 
-            const res = await axios.put('http://localhost:5001/api/users/profile', formData, {
+            const res = await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/profile`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'

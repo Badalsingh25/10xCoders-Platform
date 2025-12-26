@@ -75,7 +75,7 @@ const Home = () => {
           Authorization: `Bearer ${token}`
         }
       };
-      const { data } = await axios.get('http://localhost:5001/api/users/me', config);
+      const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/me`, config);
       if (data && data.dashboardStats) {
         setUserStats(data.dashboardStats);
       }

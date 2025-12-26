@@ -180,7 +180,7 @@ const TechEducationPlatform = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await axios.put('http://localhost:5001/api/users/course-progress', {
+        await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/course-progress`, {
           courseId: filteredVideos[index].id.videoId,
           title: filteredVideos[index].snippet.title,
           progress: 1, // Started

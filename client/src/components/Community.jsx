@@ -18,7 +18,7 @@ const Community = () => {
     const fetchPosts = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5001/api/community/posts', {
+            const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/posts`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setPosts(res.data);
@@ -36,7 +36,7 @@ const Community = () => {
     const handleUpvote = async (id, type = 'post') => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put('http://localhost:5001/api/community/vote',
+            await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/vote`,
                 { id, type },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -195,7 +195,7 @@ const PostCard = ({ post, onUpvote }) => {
                         </p>
                         {post.imageUrl && (
                             <div className="mb-4 rounded-xl overflow-hidden max-h-60 w-full md:w-1/2 bg-slate-100">
-                                <img src={`http://localhost:5001${post.imageUrl}`} alt="Doubt" className="w-full h-full object-cover" />
+                                <img src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${post.imageUrl}`} alt="Doubt" className="w-full h-full object-cover" />
                             </div>
                         )}
                     </Link>
@@ -230,7 +230,7 @@ const AskQuestionModal = ({ isOpen, onClose, onRefresh }) => {
             const token = localStorage.getItem('token');
             const tagArray = tags.split(',').map(t => t.trim());
 
-            await axios.post('http://localhost:5001/api/community/posts',
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/posts`,
                 { title, description: desc, tags: tagArray },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -298,7 +298,7 @@ const AIDoubtSolverModal = ({ isOpen, onClose, onRefresh }) => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5001/api/community/ai-solve',
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/ai-solve`,
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );

@@ -30,7 +30,7 @@ const AITutor = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5001/api/ai/ask', {
+            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/ai/ask`, {
                 context,
                 question: input,
                 // Code could be parsed from input or added as a separate field in a more complex UI

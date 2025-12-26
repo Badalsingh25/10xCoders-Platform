@@ -20,7 +20,7 @@ const PostDetails = () => {
     const fetchDetails = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:5001/api/community/posts/${id}`, {
+            const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/posts/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setPost(res.data.post);
@@ -39,7 +39,7 @@ const PostDetails = () => {
     const handlePostVote = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.put('http://localhost:5001/api/community/vote',
+            const res = await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/vote`,
                 { id: post._id, type: 'post' },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -52,7 +52,7 @@ const PostDetails = () => {
     const handleAnswerVote = async (answerId) => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.put('http://localhost:5001/api/community/vote',
+            const res = await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/vote`,
                 { id: answerId, type: 'answer' },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -135,7 +135,7 @@ const PostDetails = () => {
                 formData.append('audio', audioBlob, 'voice-note.webm');
             }
 
-            await axios.post('http://localhost:5001/api/community/answers',
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/answers`,
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -156,7 +156,7 @@ const PostDetails = () => {
         setGeneratingAI(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.post(`http://localhost:5001/api/community/generate-answer/${id}`,
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/generate-answer/${id}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -225,7 +225,7 @@ const PostDetails = () => {
 
                             {post.imageUrl && (
                                 <div className="mb-6 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                                    <img src={`http://localhost:5001${post.imageUrl}`} alt="Attachment" className="max-w-full h-auto mx-auto" />
+                                    <img src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${post.imageUrl}`} alt="Attachment" className="max-w-full h-auto mx-auto" />
                                 </div>
                             )}
 
@@ -285,14 +285,14 @@ const PostDetails = () => {
                                             </p>
                                             {answer.imageUrl && (
                                                 <div className="mt-3 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 max-w-md">
-                                                    <img src={`http://localhost:5001${answer.imageUrl}`} alt="Answer attachment" className="w-full h-auto" />
+                                                    <img src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${answer.imageUrl}`} alt="Answer attachment" className="w-full h-auto" />
                                                 </div>
                                             )}
                                             {answer.audioUrl && (
                                                 <div className="mt-3 bg-violet-50 dark:bg-violet-900/20 p-3 rounded-xl max-w-sm border border-violet-100 dark:border-violet-800">
                                                     <p className="text-xs text-violet-600 dark:text-violet-400 font-bold mb-2 flex items-center gap-1"><Mic size={12} /> Voice Answer</p>
                                                     <audio controls className="w-full h-8">
-                                                        <source src={`http://localhost:5001${answer.audioUrl}`} type="audio/webm" />
+                                                        <source src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${answer.audioUrl}`} type="audio/webm" />
                                                         Your browser does not support the audio element.
                                                     </audio>
                                                 </div>
