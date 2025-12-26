@@ -35,7 +35,7 @@ const configurePassport = () => {
     passport.use(new GitHubStrategy({
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL: `${BACKEND_URL}/auth/github/callback`
+        callbackURL: process.env.GITHUB_CALLBACK_URL || `${BACKEND_URL}/auth/github/callback`
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             let user = await User.findOne({ githubId: profile.id });
@@ -57,7 +57,7 @@ const configurePassport = () => {
     passport.use(new FacebookStrategy({
         clientID: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-        callbackURL: `${BACKEND_URL}/auth/facebook/callback`,
+        callbackURL: process.env.FACEBOOK_CALLBACK_URL || `${BACKEND_URL}/auth/facebook/callback`,
         profileFields: ['id', 'displayName', 'photos', 'email']
     }, async (accessToken, refreshToken, profile, done) => {
         try {
@@ -80,7 +80,7 @@ const configurePassport = () => {
     passport.use(new LinkedInStrategy({
         clientID: process.env.LINKEDIN_CLIENT_ID,
         clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-        callbackURL: `${BACKEND_URL}/auth/linkedin/callback`,
+        callbackURL: process.env.LINKEDIN_CALLBACK_URL || `${BACKEND_URL}/auth/linkedin/callback`,
         scope: ['r_liteprofile', 'r_emailaddress'],
     }, async (accessToken, refreshToken, profile, done) => {
         try {
@@ -103,7 +103,7 @@ const configurePassport = () => {
     passport.use(new TwitterStrategy({
         clientID: process.env.TWITTER_CLIENT_ID,
         clientSecret: process.env.TWITTER_CLIENT_SECRET || 'none', // Handle empty secret
-        callbackURL: `${BACKEND_URL}/auth/twitter/callback`,
+        callbackURL: process.env.TWITTER_CALLBACK_URL || `${BACKEND_URL}/auth/twitter/callback`,
         clientType: 'confidential'
     }, async (accessToken, refreshToken, profile, done) => {
         try {
