@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 // Gemini API key (replace this with environment variable in production)
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -16,7 +17,7 @@ const PersonalizedRoadmap = () => {
   const generateRoadmap = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       if (!GEMINI_API_KEY) {
         throw new Error('AI features are not configured. Please set VITE_GEMINI_API_KEY in your environment.');
@@ -43,7 +44,7 @@ const PersonalizedRoadmap = () => {
         ## ADDITIONAL RESOURCES AND RECOMMENDATIONS
         (Include any relevant information, tips, or resources that would be helpful)
       `;
-      
+
       const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
         method: 'POST',
         headers: {
@@ -51,27 +52,43 @@ const PersonalizedRoadmap = () => {
           'x-goog-api-key': GEMINI_API_KEY
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }], 
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
             maxOutputTokens: 2048
           }
         })
       });
-      
+
       const data = await response.json();
-      
+
       if (data.error) {
         throw new Error(data.error.message || 'Error generating roadmap');
       }
-      
+
       const roadmapText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      
+
       if (!roadmapText) {
         throw new Error('No roadmap was generated');
       }
-      
+
       setRoadmap(roadmapText);
+
+      // Save to Database
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/features/roadmap`, {
+            roadmap: roadmapText,
+            currentStep: 'generated',
+            completedSteps: []
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      } catch (saveError) {
+        console.error("Failed to save roadmap:", saveError);
+      }
     } catch (err) {
       console.error('Error:', err);
       setError(err.message || 'Failed to generate roadmap');
@@ -142,15 +159,15 @@ const PersonalizedRoadmap = () => {
           bold: false
         });
       }
-      
+
       parts.push({
         text: match[1],
         bold: true
       });
-      
+
       currentIndex = match.index + match[0].length;
     }
-    
+
     if (currentIndex < text.length) {
       parts.push({
         text: text.substring(currentIndex),
@@ -161,10 +178,10 @@ const PersonalizedRoadmap = () => {
     if (parts.length === 0) {
       return text;
     }
-    
-    return parts.map((part, i) => 
-      part.bold ? 
-        <span key={i} className="font-bold text-indigo-800">{part.text}</span> : 
+
+    return parts.map((part, i) =>
+      part.bold ?
+        <span key={i} className="font-bold text-indigo-800">{part.text}</span> :
         <span key={i}>{part.text}</span>
     );
   };
@@ -285,33 +302,32 @@ const PersonalizedRoadmap = () => {
           <div className="mb-8">
             <div className="flex justify-between mb-1">
               {[1, 2, 3, 4].map((num) => (
-                <div 
-                  key={num} 
+                <div
+                  key={num}
                   className={`flex flex-col items-center ${step >= num ? 'text-indigo-600' : 'text-gray-400'}`}
                 >
-                  <div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
-                      step > num 
-                        ? 'bg-indigo-600 text-white' 
-                        : step === num 
-                          ? 'bg-white border-2 border-indigo-600 text-indigo-600' 
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${step > num
+                        ? 'bg-indigo-600 text-white'
+                        : step === num
+                          ? 'bg-white border-2 border-indigo-600 text-indigo-600'
                           : 'bg-gray-200 text-gray-500'
-                    }`}
+                      }`}
                   >
                     {num}
                   </div>
                   <span className="text-xs">{
                     num === 1 ? "Topic" :
-                    num === 2 ? "Time" :
-                    num === 3 ? "Level" :
-                    "Depth"
+                      num === 2 ? "Time" :
+                        num === 3 ? "Level" :
+                          "Depth"
                   }</span>
                 </div>
               ))}
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-300 ease-in-out" 
+              <div
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-300 ease-in-out"
                 style={{ width: `${(step - 1) * 33.3}%` }}
               ></div>
             </div>
@@ -330,20 +346,19 @@ const PersonalizedRoadmap = () => {
                 Back
               </button>
             ) : (
-              <div></div> 
+              <div></div>
             )}
-            
+
             <button
               onClick={nextStep}
               disabled={!isStepComplete() || (step === 4 && loading)}
-              className={`px-6 py-3 rounded-lg shadow font-medium text-white transition-colors ${
-                isStepComplete() 
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700' 
+              className={`px-6 py-3 rounded-lg shadow font-medium text-white transition-colors ${isStepComplete()
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
                   : 'bg-gray-400 cursor-not-allowed'
-              }`}
+                }`}
             >
-              {step === 4 
-                ? (loading ? 'Generating...' : 'Generate Roadmap') 
+              {step === 4
+                ? (loading ? 'Generating...' : 'Generate Roadmap')
                 : 'Next'}
             </button>
           </div>

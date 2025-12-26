@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
@@ -53,7 +54,7 @@ const InterviewPrep = () => {
         const interimTranscript = Array.from(event.results)
           .map(result => result[0].transcript)
           .join('');
-        
+
         setUserAnswer(interimTranscript);
       };
 
@@ -111,7 +112,7 @@ Format the output as a JSON array of question objects, where each object has exa
 
       const result = await model.generateContent(prompt);
       const response = await result.response.text();
-    
+
       const jsonMatch = response.match(/\[.*\]/s);
       if (jsonMatch) {
         try {
@@ -297,9 +298,9 @@ Format your response with bold headings (e.g., **Hint:** and **Ideal Answer:**).
 
   const startWebcam = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
       });
       videoRef.current.srcObject = stream;
     } catch (error) {
@@ -334,7 +335,7 @@ Format your response with bold headings (e.g., **Hint:** and **Ideal Answer:**).
 
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const currentQuestion = generatedQuestions[currentQuestionIndex].question;
-      
+
       const prompt = `Evaluate this answer to the interview question: "${currentQuestion}"
 
 Answer: "${userAnswer}"
@@ -375,6 +376,22 @@ Format your response in a clear, constructive manner that helps the interviewee 
         });
       }
       setAiEvaluation(response);
+
+      // Save to Database
+      try {
+        const token = localStorage.getItem('token');
+        if (token && parsedScore !== null) {
+          await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/features/interview`, {
+            question: currentQuestion,
+            score: parsedScore,
+            feedback: response
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      } catch (saveError) {
+        console.error("Failed to save interview attempt:", saveError);
+      }
     } catch (error) {
       console.error("AI Evaluation Error:", error);
       setAiEvaluation("Evaluation failed. Please try again or check your internet connection.");
@@ -392,10 +409,10 @@ Format your response in a clear, constructive manner that helps the interviewee 
       }
 
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      
+
       const averageScore = getAverageScore();
       const averageScoreText = averageScore !== null ? averageScore.toFixed(1) : 'N/A';
-      const scoreLines = generatedQuestions.map((q, index) => 
+      const scoreLines = generatedQuestions.map((q, index) =>
         `Question ${index + 1} score: ${typeof scores[index] === 'number' ? scores[index] : 'N/A'}`
       ).join('\n');
 
@@ -470,12 +487,12 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
   const renderJobInput = () => (
     <div className="bg-white min-h-screen flex flex-col items-center justify-center p-4">
       <h1 className="text-4xl font-bold text-purple-600 mb-8">Custom Interview Preparation</h1>
-      
+
       <div className="w-full max-w-2xl bg-purple-50 p-8 rounded-lg shadow-2xl">
         <div className="mb-4">
           <label className="block text-purple-800 mb-2 font-semibold">Job Role</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={jobRole}
             onChange={(e) => setJobRole(e.target.value)}
             placeholder="e.g., Software Engineer, Data Scientist"
@@ -491,11 +508,10 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
                 key={option}
                 type="button"
                 onClick={() => setTopic(option)}
-                className={`px-4 py-2 rounded-full text-sm transition-all ${
-                  topic === option
+                className={`px-4 py-2 rounded-full text-sm transition-all ${topic === option
                     ? 'bg-purple-600 text-white shadow-lg'
                     : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-                }`}
+                  }`}
               >
                 {option}
               </button>
@@ -511,21 +527,20 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
                 key={level}
                 type="button"
                 onClick={() => setDifficulty(level)}
-                className={`px-4 py-2 rounded-full text-sm transition-all ${
-                  difficulty === level
+                className={`px-4 py-2 rounded-full text-sm transition-all ${difficulty === level
                     ? 'bg-purple-600 text-white shadow-lg'
                     : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-                }`}
+                  }`}
               >
                 {level}
               </button>
             ))}
           </div>
         </div>
-        
+
         <div className="mb-6">
           <label className="block text-purple-800 mb-2 font-semibold">Job Description</label>
-          <textarea 
+          <textarea
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
             placeholder="Paste the full job description here..."
@@ -538,14 +553,13 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
           <label className="block text-purple-800 mb-2 font-semibold">Number of Questions</label>
           <div className="flex space-x-4">
             {[5, 10, 15, 20].map(count => (
-              <button 
+              <button
                 key={count}
                 onClick={() => setQuestionCount(count)}
-                className={`px-4 py-2 rounded-full transition-all ${
-                  questionCount === count 
-                    ? 'bg-purple-600 text-white shadow-lg' 
+                className={`px-4 py-2 rounded-full transition-all ${questionCount === count
+                    ? 'bg-purple-600 text-white shadow-lg'
                     : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-                }`}
+                  }`}
               >
                 {count} Questions
               </button>
@@ -553,7 +567,7 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
           </div>
         </div>
 
-        <button 
+        <button
           onClick={generateInterviewQuestions}
           disabled={!jobRole || !jobDescription || isLoading}
           className="w-full bg-purple-600 text-white p-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center"
@@ -579,10 +593,10 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
       <div className="w-full max-w-6xl grid grid-cols-12 gap-8">
 
         <div className="col-span-6 bg-purple-100 rounded-lg overflow-hidden h-[600px] shadow-xl">
-          <video 
-            ref={videoRef} 
-            autoPlay 
-            muted 
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
             className="w-full h-full object-cover"
           />
         </div>
@@ -644,14 +658,14 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
           )}
 
           <div className="flex space-x-4 mb-6">
-            <button 
+            <button
               onClick={startRecording}
               disabled={isRecording}
               className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
             >
               {isRecording ? 'Recording...' : 'Start Recording'}
             </button>
-            <button 
+            <button
               onClick={stopRecording}
               disabled={!isRecording}
               className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
@@ -708,7 +722,7 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
           )}
 
           <div className="flex justify-between mt-auto gap-2">
-            <button 
+            <button
               onClick={evaluateAnswer}
               disabled={isLoading}
               className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center"
@@ -725,9 +739,9 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
                 'Evaluate Answer'
               )}
             </button>
-            
+
             {currentQuestionIndex > 0 && (
-              <button 
+              <button
                 onClick={() => {
                   setUserAnswers(prev => {
                     const updated = [...prev];
@@ -747,7 +761,7 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
             )}
 
             {currentQuestionIndex < questionCount - 1 ? (
-              <button 
+              <button
                 onClick={() => {
                   setUserAnswers(prev => {
                     const updated = [...prev];
@@ -765,7 +779,7 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
                 Next Question
               </button>
             ) : (
-              <button 
+              <button
                 onClick={generateOverallFeedback}
                 disabled={isLoading}
                 className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center"
@@ -792,7 +806,7 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
   const renderOverallFeedback = () => (
     <div className="bg-white min-h-screen flex flex-col items-center justify-center p-4">
       <h1 className="text-4xl font-bold text-purple-600 mb-8">Interview Feedback</h1>
-      
+
       <div className="w-full max-w-2xl bg-purple-50 p-8 rounded-lg shadow-2xl">
         <h2 className="text-2xl font-bold mb-4 text-purple-800">Overall Feedback</h2>
 
@@ -845,14 +859,14 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
           </div>
         </div>
 
-        <button 
+        <button
           onClick={downloadFeedbackPdf}
           className="w-full bg-purple-500 text-white p-3 rounded-lg hover:bg-purple-600 mt-6 transition-colors"
         >
           Download Feedback as PDF
         </button>
 
-        <button 
+        <button
           onClick={() => setStage('job-input')}
           className="w-full bg-purple-600 text-white p-3 rounded-lg hover:bg-purple-700 mt-6 transition-colors"
         >

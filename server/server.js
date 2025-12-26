@@ -107,6 +107,7 @@ app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/quiz', require('./routes/quizRoutes'));
 app.use('/api/community', require('./routes/communityRoutes'));
+app.use('/api/features', require('./routes/featureRoutes'));
 app.use('/', require('./routes/authRoutes'));
 
 // Health check endpoint

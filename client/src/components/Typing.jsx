@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 
 const TypingTest = () => {
   // State variables
@@ -17,32 +18,32 @@ const TypingTest = () => {
   const [customTime, setCustomTime] = useState(45);
   const [showSettings, setShowSettings] = useState(false);
   const [difficulty, setDifficulty] = useState('medium');
-  
+
   const inputRef = useRef(null);
   const wordContainerRef = useRef(null);
 
   // Word lists by difficulty
   const wordLists = {
     easy: [
-      'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'any', 'can', 'had', 'her', 'was', 'one', 
-      'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'man', 'new', 'now', 'old', 'see', 'two', 
+      'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'any', 'can', 'had', 'her', 'was', 'one',
+      'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'man', 'new', 'now', 'old', 'see', 'two',
       'way', 'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use'
     ],
     medium: [
-      'about', 'above', 'after', 'again', 'along', 'began', 'below', 'between', 'both', 'car', 'children', 
-      'city', 'close', 'country', 'earth', 'every', 'father', 'food', 'great', 'hand', 'house', 'large', 
-      'learn', 'letter', 'light', 'money', 'mother', 'mountain', 'night', 'paper', 'people', 'picture', 
+      'about', 'above', 'after', 'again', 'along', 'began', 'below', 'between', 'both', 'car', 'children',
+      'city', 'close', 'country', 'earth', 'every', 'father', 'food', 'great', 'hand', 'house', 'large',
+      'learn', 'letter', 'light', 'money', 'mother', 'mountain', 'night', 'paper', 'people', 'picture',
       'plant', 'river', 'school', 'story', 'study', 'thing', 'thought', 'water', 'while', 'world', 'would'
     ],
     hard: [
-      'algorithm', 'application', 'beautiful', 'calculation', 'challenging', 'characteristic', 'combination', 
-      'competition', 'comprehensive', 'configuration', 'considerable', 'constitution', 'contemporary', 
-      'contribution', 'conversation', 'corporation', 'distribution', 'documentation', 'effectiveness', 
-      'environmental', 'extraordinary', 'functionality', 'implementation', 'infrastructure', 'innovation', 
-      'institution', 'intelligence', 'international', 'investigation', 'mathematics', 'multiplication', 
-      'negotiation', 'opportunity', 'organization', 'performance', 'perspective', 'possibility', 
-      'preparation', 'productivity', 'professional', 'programming', 'qualification', 'relationship', 
-      'requirement', 'responsibility', 'satisfaction', 'significance', 'subscription', 'technology', 
+      'algorithm', 'application', 'beautiful', 'calculation', 'challenging', 'characteristic', 'combination',
+      'competition', 'comprehensive', 'configuration', 'considerable', 'constitution', 'contemporary',
+      'contribution', 'conversation', 'corporation', 'distribution', 'documentation', 'effectiveness',
+      'environmental', 'extraordinary', 'functionality', 'implementation', 'infrastructure', 'innovation',
+      'institution', 'intelligence', 'international', 'investigation', 'mathematics', 'multiplication',
+      'negotiation', 'opportunity', 'organization', 'performance', 'perspective', 'possibility',
+      'preparation', 'productivity', 'professional', 'programming', 'qualification', 'relationship',
+      'requirement', 'responsibility', 'satisfaction', 'significance', 'subscription', 'technology',
       'temperature', 'understanding'
     ]
   };
@@ -96,12 +97,12 @@ const TypingTest = () => {
     const wordPool = wordLists[difficulty];
     const randomWords = [];
     const wordCount = 200; // Plenty of words for any test duration
-    
+
     for (let i = 0; i < wordCount; i++) {
       const randomIndex = Math.floor(Math.random() * wordPool.length);
       randomWords.push(wordPool[randomIndex]);
     }
-    
+
     setWords(randomWords);
   };
 
@@ -113,7 +114,7 @@ const TypingTest = () => {
   // Timer countdown
   useEffect(() => {
     let interval = null;
-    
+
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(time => time - 1);
@@ -122,7 +123,7 @@ const TypingTest = () => {
       clearInterval(interval);
       endTest();
     }
-    
+
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
 
@@ -131,19 +132,41 @@ const TypingTest = () => {
     if (wordContainerRef.current && isActive) {
       const container = wordContainerRef.current;
       const activeWord = container.querySelector('.word.active');
-      
+
       if (activeWord) {
         const containerRect = container.getBoundingClientRect();
         const activeRect = activeWord.getBoundingClientRect();
-        
+
         if (activeRect.top < containerRect.top || activeRect.bottom > containerRect.bottom) {
-          const scrollOffset = activeWord.offsetTop - container.offsetTop - 
+          const scrollOffset = activeWord.offsetTop - container.offsetTop -
             (container.clientHeight / 2) + (activeWord.clientHeight / 2);
           container.scrollTo({ top: scrollOffset, behavior: 'smooth' });
         }
       }
     }
   }, [currentWordIndex, isActive]);
+
+  // Save results when test completes
+  useEffect(() => {
+    if (testComplete) {
+      const saveResults = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/features/typing`, {
+              wpm,
+              accuracy
+            }, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+          }
+        } catch (error) {
+          console.error("Failed to save typing test results:", error);
+        }
+      };
+      saveResults();
+    }
+  }, [testComplete, wpm, accuracy]);
 
   // Focus input field when test starts
   useEffect(() => {
@@ -160,9 +183,9 @@ const TypingTest = () => {
         const wordsTyped = charactersTyped / 5; // Standard: 5 characters = 1 word
         const currentWpm = Math.round(wordsTyped / minutes);
         setWpm(currentWpm);
-        
-        const currentAccuracy = correctCharacters > 0 
-          ? Math.round((correctCharacters / charactersTyped) * 100) 
+
+        const currentAccuracy = correctCharacters > 0
+          ? Math.round((correctCharacters / charactersTyped) * 100)
           : 0;
         setAccuracy(currentAccuracy);
       }
@@ -181,7 +204,7 @@ const TypingTest = () => {
     setWpm(0);
     setAccuracy(100);
     generateWords();
-    
+
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -210,29 +233,29 @@ const TypingTest = () => {
   // Handle user input
   const handleInputChange = (e) => {
     const value = e.target.value;
-    
+
     if (!isActive && value.length > 0) {
       startTest();
     }
-    
+
     if (isActive) {
       setCurrentInput(value);
-      
+
       // If space is pressed, move to next word
       if (value.endsWith(' ')) {
         const typedWord = value.trim();
         const currentWord = words[currentWordIndex];
-        
+
         // Calculate correct characters
         const minLength = Math.min(typedWord.length, currentWord.length);
         let correctChars = 0;
-        
+
         for (let i = 0; i < minLength; i++) {
           if (typedWord[i] === currentWord[i]) {
             correctChars++;
           }
         }
-        
+
         setCharactersTyped(prev => prev + typedWord.length + 1); // +1 for space
         setCorrectCharacters(prev => prev + correctChars);
         setCurrentWordIndex(prev => prev + 1);
@@ -293,7 +316,7 @@ const TypingTest = () => {
             Test your typing speed and accuracy
           </p>
         </header>
-        
+
         {/* Main Content */}
         <main>
           {/* Test Area */}
@@ -312,30 +335,29 @@ const TypingTest = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Words Display */}
-            <div 
+            <div
               ref={wordContainerRef}
               className={`h-24 mb-4 overflow-y-auto p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-slate-700' : 'bg-gray-100'} leading-relaxed`}
             >
               <div className="flex flex-wrap">
                 {words.map((word, index) => (
-                  <span 
-                    key={index} 
-                    className={`word mr-2 mb-2 px-1 rounded ${
-                      index === currentWordIndex 
-                        ? `active ${theme.text} font-bold` 
-                        : index < currentWordIndex 
-                          ? `${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}` 
+                  <span
+                    key={index}
+                    className={`word mr-2 mb-2 px-1 rounded ${index === currentWordIndex
+                        ? `active ${theme.text} font-bold`
+                        : index < currentWordIndex
+                          ? `${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`
                           : `${currentTheme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`
-                    }`}
+                      }`}
                   >
                     {word}
                   </span>
                 ))}
               </div>
             </div>
-            
+
             {/* Text Input */}
             <input
               ref={inputRef}
@@ -345,11 +367,11 @@ const TypingTest = () => {
               disabled={!isActive && testComplete}
               placeholder={isActive ? "Type here..." : "Type to start..."}
               className={`w-full p-3 rounded-lg border-2 focus:outline-none text-lg 
-                ${currentTheme === 'dark' 
-                  ? 'bg-slate-700 text-white border-slate-600 focus:border-slate-400' 
+                ${currentTheme === 'dark'
+                  ? 'bg-slate-700 text-white border-slate-600 focus:border-slate-400'
                   : 'bg-white text-gray-800 border-gray-300 focus:border-blue-500'}`}
             />
-            
+
             {/* Overlay for completed test */}
             {testComplete && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 rounded-lg z-10">
@@ -365,7 +387,7 @@ const TypingTest = () => {
                       <p className="text-3xl font-bold">{accuracy}%</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={resetTest}
                     className={`${theme.primary} text-white py-2 px-6 rounded-lg ${theme.hoverBg} transition duration-200`}
                   >
@@ -375,7 +397,7 @@ const TypingTest = () => {
               </div>
             )}
           </div>
-          
+
           {/* Controls */}
           <div className="flex flex-wrap justify-between mb-6 gap-2">
             {/* Timer Options */}
@@ -385,8 +407,8 @@ const TypingTest = () => {
                   key={seconds}
                   onClick={() => handleTimerChange(seconds)}
                   className={`py-2 px-4 rounded-lg transition duration-200 
-                    ${timer === seconds 
-                      ? `${theme.primary} text-white` 
+                    ${timer === seconds
+                      ? `${theme.primary} text-white`
                       : `${currentTheme === 'dark' ? 'bg-slate-700 hover:bg-slate-600' : 'bg-gray-200 hover:bg-gray-300'} 
                          ${currentTheme === 'dark' ? 'text-white' : 'text-gray-700'}`}`}
                 >
@@ -401,8 +423,8 @@ const TypingTest = () => {
                   value={customTime}
                   onChange={handleCustomTimeChange}
                   className={`w-16 px-2 py-2 rounded-l-lg border-y border-l 
-                    ${currentTheme === 'dark' 
-                      ? 'bg-slate-700 text-white border-slate-600' 
+                    ${currentTheme === 'dark'
+                      ? 'bg-slate-700 text-white border-slate-600'
                       : 'bg-white text-gray-800 border-gray-300'}`}
                 />
                 <button
@@ -413,7 +435,7 @@ const TypingTest = () => {
                 </button>
               </div>
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex gap-2">
               <button
@@ -430,12 +452,12 @@ const TypingTest = () => {
               </button>
             </div>
           </div>
-          
+
           {/* Settings Panel */}
           {showSettings && (
             <div className={`p-6 rounded-lg shadow-lg mb-6 ${currentTheme === 'dark' ? 'bg-slate-800' : 'bg-white'}`}>
               <h2 className="text-xl font-bold mb-4">Settings</h2>
-              
+
               {/* Themes */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Themes</h3>
@@ -445,8 +467,8 @@ const TypingTest = () => {
                       key={themeName}
                       onClick={() => changeTheme(themeName)}
                       className={`py-2 px-4 rounded-lg transition duration-200 
-                        ${currentTheme === themeName 
-                          ? `${themes[themeName].primary} text-white` 
+                        ${currentTheme === themeName
+                          ? `${themes[themeName].primary} text-white`
                           : `${currentTheme === 'dark' ? 'bg-slate-700' : 'bg-gray-200'} 
                              ${currentTheme === 'dark' ? 'text-white' : 'text-gray-700'}`}`}
                     >
@@ -455,7 +477,7 @@ const TypingTest = () => {
                   ))}
                 </div>
               </div>
-              
+
               {/* Difficulty */}
               <div>
                 <h3 className="text-lg font-semibold mb-2">Difficulty</h3>
@@ -465,8 +487,8 @@ const TypingTest = () => {
                       key={diff}
                       onClick={() => changeDifficulty(diff)}
                       className={`py-2 px-4 rounded-lg transition duration-200 
-                        ${difficulty === diff 
-                          ? `${theme.primary} text-white` 
+                        ${difficulty === diff
+                          ? `${theme.primary} text-white`
                           : `${currentTheme === 'dark' ? 'bg-slate-700' : 'bg-gray-200'} 
                              ${currentTheme === 'dark' ? 'text-white' : 'text-gray-700'}`}`}
                     >
@@ -477,7 +499,7 @@ const TypingTest = () => {
               </div>
             </div>
           )}
-          
+
           {/* Instructions */}
           <div className={`p-6 rounded-lg ${currentTheme === 'dark' ? 'bg-slate-800' : 'bg-gray-100'}`}>
             <h2 className="text-xl font-bold mb-2">How to Use</h2>
@@ -490,7 +512,7 @@ const TypingTest = () => {
             </ul>
           </div>
         </main>
-        
+
         {/* Footer */}
         <footer className="mt-8 text-center">
           <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>

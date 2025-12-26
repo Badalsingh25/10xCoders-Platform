@@ -477,6 +477,14 @@ exports.updateCodingHours = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     user.codingHours = (user.codingHours || 0) + parseFloat(hours);
+
+    // Log this activity so it shows up in the graph
+    user.activityLog.push({
+      action: 'coding_session',
+      details: 'Coding Practice Session',
+      timestamp: new Date()
+    });
+
     await user.save();
     res.status(200).json({ codingHours: user.codingHours });
   } catch (error) {
