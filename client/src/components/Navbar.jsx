@@ -389,7 +389,7 @@ const Navbar = () => {
                                 >
                                     <img
                                         className="h-9 w-9 rounded-full border border-indigo-100 object-cover shadow-sm hover:shadow-md transition-shadow"
-                                        src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=fff`}
+                                        src={user.avatar ? user.avatar.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : `https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=fff`}
                                         alt=""
                                     />
                                 </button>

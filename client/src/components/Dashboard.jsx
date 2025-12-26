@@ -226,7 +226,7 @@ const Dashboard = () => {
                         </div>
                         <div className="hidden md:flex items-center gap-3 bg-white dark:bg-slate-800 p-2 pr-4 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
                             <img
-                                src={userData.avatar || `https://ui-avatars.com/api/?name=${userData.name}&background=6366f1&color=fff`}
+                                src={userData.avatar ? userData.avatar.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : `https://ui-avatars.com/api/?name=${userData.name}&background=6366f1&color=fff`}
                                 alt="Profile"
                                 className="w-10 h-10 rounded-full"
                             />
@@ -406,7 +406,7 @@ const Dashboard = () => {
                                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-3">
                                     {userData.savedResumes && userData.savedResumes.length > 0 ? (
                                         userData.savedResumes.slice(0, 5).map((resume, idx) => (
-                                            <div key={idx} onClick={() => window.open(resume.data?.fileUrl || '#', '_blank')} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-600 transition cursor-pointer group relative">
+                                            <div key={idx} onClick={() => window.open(resume.data?.fileUrl ? resume.data.fileUrl.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : '#', '_blank')} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-600 transition cursor-pointer group relative">
                                                 <div className="flex items-center gap-3 overflow-hidden">
                                                     <FileText size={18} className="text-slate-400 dark:text-slate-500 group-hover:text-indigo-500 flex-shrink-0" />
                                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-indigo-900 dark:group-hover:text-indigo-400 truncate">{resume.title || `Resume ${idx + 1}`}</span>
@@ -442,7 +442,7 @@ const Dashboard = () => {
                                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-3">
                                     {userData.certificates && userData.certificates.length > 0 ? (
                                         userData.certificates.slice(0, 3).map((cert, idx) => (
-                                            <div key={idx} onClick={() => window.open(cert.fileUrl || '#', '_blank')} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-600 transition cursor-pointer group relative">
+                                            <div key={idx} onClick={() => window.open(cert.fileUrl ? cert.fileUrl.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : '#', '_blank')} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-600 transition cursor-pointer group relative">
                                                 <div className="flex items-center gap-3 overflow-hidden">
                                                     <Award size={18} className="text-emerald-500 flex-shrink-0" />
                                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-emerald-900 dark:group-hover:text-emerald-400 truncate">{cert.title || `Certificate ${idx + 1}`}</span>
