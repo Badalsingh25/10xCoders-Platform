@@ -253,7 +253,7 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
                                 <h3 className="text-2xl font-bold flex items-center gap-3">
                                     Full Stack Roadmap Progress
                                 </h3>
-                                <p className="text-emerald-100 mt-1">Keep going! You're 3 steps away from React Mastery.</p>
+                                <p className="text-emerald-100 mt-1">{overallValue > 0 ? "You're making good progress! Keep it up." : "Start your journey to unlock this roadmap."}</p>
                             </div>
                             <button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm transition px-4 py-2 rounded-lg text-sm font-semibold">
                                 View Full Path

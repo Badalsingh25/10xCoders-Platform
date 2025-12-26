@@ -225,7 +225,7 @@ const PostDetails = () => {
 
                             {post.imageUrl && (
                                 <div className="mb-6 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                                    <img src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${post.imageUrl}`} alt="Attachment" className="max-w-full h-auto mx-auto" />
+                                    <img src={post.imageUrl.includes('localhost:5001') ? post.imageUrl.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : (post.imageUrl.startsWith('http') ? post.imageUrl : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${post.imageUrl}`)} alt="Attachment" className="max-w-full h-auto mx-auto" />
                                 </div>
                             )}
 
@@ -285,14 +285,14 @@ const PostDetails = () => {
                                             </p>
                                             {answer.imageUrl && (
                                                 <div className="mt-3 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 max-w-md">
-                                                    <img src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${answer.imageUrl}`} alt="Answer attachment" className="w-full h-auto" />
+                                                    <img src={answer.imageUrl.includes('localhost:5001') ? answer.imageUrl.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : (answer.imageUrl.startsWith('http') ? answer.imageUrl : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${answer.imageUrl}`)} alt="Answer attachment" className="w-full h-auto" />
                                                 </div>
                                             )}
                                             {answer.audioUrl && (
                                                 <div className="mt-3 bg-violet-50 dark:bg-violet-900/20 p-3 rounded-xl max-w-sm border border-violet-100 dark:border-violet-800">
                                                     <p className="text-xs text-violet-600 dark:text-violet-400 font-bold mb-2 flex items-center gap-1"><Mic size={12} /> Voice Answer</p>
                                                     <audio controls className="w-full h-8">
-                                                        <source src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${answer.audioUrl}`} type="audio/webm" />
+                                                        <source src={answer.audioUrl.includes('localhost:5001') ? answer.audioUrl.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : (answer.audioUrl.startsWith('http') ? answer.audioUrl : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${answer.audioUrl}`)} type="audio/webm" />
                                                         Your browser does not support the audio element.
                                                     </audio>
                                                 </div>

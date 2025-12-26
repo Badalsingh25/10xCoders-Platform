@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const InterviewAttempt = require('../models/interviewModel');
 const RoadmapProgress = require('../models/roadmapModel');
 const TypingTest = require('../models/typingModel');
+const User = require('../models/userModel');
 
 // @desc    Save interview attempt
 // @route   POST /api/features/interview
@@ -14,6 +15,17 @@ const saveInterviewAttempt = asyncHandler(async (req, res) => {
         question,
         score,
         feedback
+    });
+
+    // Log Activity
+    await User.findByIdAndUpdate(req.user.id, {
+        $push: {
+            activityLog: {
+                action: 'interview_attempt',
+                details: `Interview Question: ${question.substring(0, 30)}...`,
+                timestamp: new Date()
+            }
+        }
     });
 
     res.status(201).json(attempt);
@@ -48,6 +60,17 @@ const saveRoadmapProgress = asyncHandler(async (req, res) => {
         });
     }
 
+    // Log Activity
+    await User.findByIdAndUpdate(req.user.id, {
+        $push: {
+            activityLog: {
+                action: 'roadmap_progress',
+                details: `Updated Roadmap: ${roadmap.substring(0, 20)}...`,
+                timestamp: new Date()
+            }
+        }
+    });
+
     res.status(200).json(progress);
 });
 
@@ -73,6 +96,17 @@ const saveTypingTest = asyncHandler(async (req, res) => {
         userId: req.user.id,
         wpm,
         accuracy
+    });
+
+    // Log Activity
+    await User.findByIdAndUpdate(req.user.id, {
+        $push: {
+            activityLog: {
+                action: 'typing_test',
+                details: `Typing Test: ${wpm} WPM`,
+                timestamp: new Date()
+            }
+        }
     });
 
     res.status(201).json(test);

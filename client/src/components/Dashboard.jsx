@@ -348,9 +348,16 @@ const Dashboard = () => {
                                             <TrendingUp size={18} />
                                             <span className="text-sm font-bold uppercase tracking-wider">Recommended Next Step</span>
                                         </div>
-                                        <h3 className="text-2xl font-bold mb-2">Complete "Advanced React Patterns"</h3>
-                                        <p className="text-indigo-100 mb-6 max-w-lg">You're 80% there! Finish the last 2 modules to earn your certificate and unlock the next roadmap.</p>
-                                        <button onClick={() => navigate('/courses')} className="px-6 py-2 bg-white text-indigo-600 font-bold rounded-lg hover:bg-indigo-50 transition shadow-md">
+                                        <h3 className="text-2xl font-bold mb-2">
+                                            {userData.dashboardStats?.recommendation?.title || 'Start a New Course'}
+                                        </h3>
+                                        <p className="text-indigo-100 mb-6 max-w-lg">
+                                            {userData.dashboardStats?.recommendation?.subtitle || 'Explore our catalog to begin your journey.'}
+                                        </p>
+                                        <button
+                                            onClick={() => navigate(userData.dashboardStats?.recommendation?.link || '/courses')}
+                                            className="px-6 py-2 bg-white text-indigo-600 font-bold rounded-lg hover:bg-indigo-50 transition shadow-md"
+                                        >
                                             Continue Now
                                         </button>
                                     </div>

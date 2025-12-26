@@ -2,6 +2,9 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/userModel");
 const Otp = require("../models/otpModel");
+const InterviewAttempt = require('../models/interviewModel');
+const TypingTest = require('../models/typingModel');
+const RoadmapProgress = require('../models/roadmapModel');
 const nodemailer = require("nodemailer");
 
 // ==========================
@@ -305,6 +308,51 @@ exports.getMe = async (req, res) => {
       overallProgress: overallPercentage,
       totalCourses: user.courses.length
     };
+
+    // --- Enhanced Stats from New Features ---
+    const interviewCount = await InterviewAttempt.countDocuments({ userId: req.user.id });
+    const typingCount = await TypingTest.countDocuments({ userId: req.user.id });
+    // Fetch latest typing WPM
+    const lastTyping = await TypingTest.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
+
+    // Add Interview Skill
+    if (interviewCount > 0) {
+      skillMap['Problem Solving'] = { total: interviewCount * 25, count: 1 }; // Boost skill
+    }
+    // Add Typing Skill
+    if (typingCount > 0 && lastTyping) {
+      skillMap['Typing'] = { total: Math.min(100, lastTyping.wpm), count: 1 };
+    }
+
+    // Re-process skills with new data
+    userObj.dashboardStats.skills = Object.keys(skillMap).map(key => ({
+      name: key,
+      progress: Math.min(100, Math.round(skillMap[key].total / skillMap[key].count)),
+      color: (Math.round(skillMap[key].total / skillMap[key].count) > 75) ? 'bg-emerald-500' :
+        (Math.round(skillMap[key].total / skillMap[key].count) > 40) ? 'bg-indigo-500' : 'bg-amber-500'
+    })).sort((a, b) => b.progress - a.progress);
+
+    // Dynamic Recommendation
+    let recTitle = "Start a New Course";
+    let recSubtitle = "Explore our catalog to begin your journey.";
+    let recLink = "/courses";
+
+    const inProgress = user.courses.find(c => !c.completed && c.progress > 0);
+    if (inProgress) {
+      recTitle = `Continue "${inProgress.title}"`;
+      recSubtitle = `You are ${inProgress.progress}% there! Keep going to earn your certificate.`;
+      recLink = "/courses";
+    } else if (interviewCount > 0 && interviewCount < 5) {
+      recTitle = "Practice More Interviews";
+      recSubtitle = "You've started strong. Try a new topic to broaden your skills.";
+      recLink = "/practice";
+    } else if (user.courses.length > 0 && !inProgress) {
+      recTitle = "Take a Skill Assessment";
+      recSubtitle = "Prove your mastery by taking a quiz on your completed topics.";
+      recLink = "/quiz";
+    }
+
+    userObj.dashboardStats.recommendation = { title: recTitle, subtitle: recSubtitle, link: recLink };
 
     res.status(200).json(userObj);
   } catch (error) {
