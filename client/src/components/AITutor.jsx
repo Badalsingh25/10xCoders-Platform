@@ -1,7 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { Send, Bot, User, Code, FileText, CheckCircle, HelpCircle, AlertCircle, Loader } from 'lucide-react';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
 import aiBotImg from '../assets/ai-bot.png';
+
+const AIMessage = ({ content }) => {
+    return (
+        <div className="ai-message">
+            <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+            >
+                {content}
+            </ReactMarkdown>
+        </div>
+    );
+};
 
 const AITutor = () => {
     const [messages, setMessages] = useState([
@@ -63,16 +80,6 @@ const AITutor = () => {
         { id: 'RESUME_HELP', label: 'Resume', icon: <FileText size={18} /> },
     ];
 
-    // Helper to render markdown-like text (simple version)
-    const renderText = (text) => {
-        const sections = text.split('\n');
-        return sections.map((sec, i) => (
-            <div key={i} className="min-h-[1.5rem]">
-                {sec.startsWith('```') ? <code className="block bg-black/10 dark:bg-black/30 p-2 rounded my-2 font-mono text-sm whitespace-pre-wrap">{sec.replace(/```/g, '')}</code> : sec}
-            </div>
-        ));
-    };
-
     return (
         <div className="min-h-[calc(100vh-4rem)] bg-slate-50 dark:bg-slate-900 flex flex-col items-center py-6 px-4">
             <div className="w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col h-[80vh] border border-slate-200 dark:border-slate-700">
@@ -107,25 +114,29 @@ const AITutor = () => {
                 {/* Chat Area */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-900/50">
                     {messages.map((msg, idx) => (
-                        <div key={idx} className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden ${msg.role === 'ai' ? 'bg-indigo-100 border border-indigo-200' : 'bg-slate-200 text-slate-600'
+                        <div key={idx} className={`chat-container ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden mx-2 ${msg.role === 'ai' ? 'bg-indigo-100 border border-indigo-200' : 'bg-slate-200 text-slate-600'
                                 }`}>
                                 {msg.role === 'ai' ? <img src="/chatbot.jpg" alt="AI" className="w-full h-full object-cover" /> : <User size={18} />}
                             </div>
-                            <div className={`p-4 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm ${msg.role === 'user'
-                                ? 'bg-indigo-600 text-white rounded-tr-none'
-                                : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-slate-700 rounded-tl-none'
-                                }`}>
-                                <div className="whitespace-pre-wrap font-sans">{msg.text}</div>
-                            </div>
+
+                            {msg.role === 'ai' ? (
+                                <div className="ai-bubble rounded-tl-none">
+                                    <AIMessage content={msg.text} />
+                                </div>
+                            ) : (
+                                <div className="bg-indigo-600 text-white p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm leading-relaxed shadow-sm">
+                                    <div className="whitespace-pre-wrap font-sans">{msg.text}</div>
+                                </div>
+                            )}
                         </div>
                     ))}
                     {loading && (
                         <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center overflow-hidden">
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center overflow-hidden mx-2">
                                 <Bot size={20} className="text-indigo-600" />
                             </div>
-                            <div className="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-tl-none flex items-center gap-2">
+                            <div className="ai-bubble rounded-tl-none flex items-center gap-2">
                                 <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
                                 <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></span>
                                 <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></span>

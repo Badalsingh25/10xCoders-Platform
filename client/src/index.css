@@ -8,3 +8,141 @@
     @apply bg-slate-950 text-slate-100;
   }
 }
+
+/* AI Chat Styling - ChatGPT Style */
+.chat-container {
+  display: flex;
+  justify-content: flex-start;
+  margin: 12px 0;
+}
+
+.ai-bubble {
+  max-width: 85%;
+  background: #f8fafc;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+/* Markdown Styling */
+.ai-message {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #111827;
+}
+
+/* Headings */
+.ai-message h1,
+.ai-message h2,
+.ai-message h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.ai-message h1 { font-size: 1.5em; }
+.ai-message h2 { font-size: 1.25em; }
+.ai-message h3 { font-size: 1.1em; }
+
+/* Lists */
+.ai-message ul {
+  padding-left: 20px;
+  margin: 10px 0;
+  list-style-type: disc;
+}
+
+.ai-message ol {
+  padding-left: 20px;
+  margin: 10px 0;
+  list-style-type: decimal;
+}
+
+.ai-message li {
+  margin-bottom: 6px;
+}
+
+/* Code Blocks */
+.ai-message pre {
+  background: #0f172a; /* Dark background for code blocks */
+  color: #e5e7eb;
+  padding: 14px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.ai-message pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 14px;
+}
+
+/* Inline Code */
+.ai-message code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Horizontal Rule */
+.ai-message hr {
+  margin: 24px 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Blockquotes */
+.ai-message blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 16px;
+  color: #4b5563;
+  margin: 16px 0;
+  font-style: italic;
+}
+
+/* Links */
+.ai-message a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Dark Mode Adjustments */
+html.dark .ai-bubble {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .ai-message {
+  color: #e2e8f0;
+}
+
+html.dark .ai-message h1,
+html.dark .ai-message h2,
+html.dark .ai-message h3 {
+  color: #f1f5f9;
+}
+
+html.dark .ai-message code {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+html.dark .ai-message hr {
+  border-color: #334155;
+}
+
+html.dark .ai-message blockquote {
+  border-color: #475569;
+  color: #94a3b8;
+}
+
+html.dark .ai-message a {
+  color: #60a5fa;
+}
