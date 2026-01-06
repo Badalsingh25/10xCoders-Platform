@@ -21,9 +21,12 @@ const AIMessage = ({ content }) => {
 };
 
 const AITutor = () => {
-    const [messages, setMessages] = useState([
-        { role: 'ai', text: "Hi! I'm your AI Tutor. I can help with Course Doubts, Code Explanations, Interview Prep, or Resume Enhancements. What are we working on today?" }
-    ]);
+    const [messages, setMessages] = useState(() => {
+        const saved = localStorage.getItem('ai_messages');
+        return saved ? JSON.parse(saved) : [
+            { role: 'ai', text: "Hi! I'm your AI Tutor. I can help with Course Doubts, Code Explanations, Interview Prep, or Resume Enhancements. What are we working on today?" }
+        ];
+    });
     const [input, setInput] = useState('');
     const [context, setContext] = useState('GENERAL');
     const [loading, setLoading] = useState(false);
@@ -35,6 +38,7 @@ const AITutor = () => {
 
     useEffect(() => {
         scrollToBottom();
+        localStorage.setItem('ai_messages', JSON.stringify(messages));
     }, [messages]);
 
     const handleSend = async () => {

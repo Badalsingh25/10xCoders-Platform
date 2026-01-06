@@ -19,6 +19,7 @@ import AITutor from "./components/AITutor";
 import Quiz from "./components/Quiz";
 import Community from "./components/Community";
 import PostDetails from "./components/PostDetails";
+import CodeTranslator from "./components/CodeTranslator";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -75,6 +76,7 @@ function App() {
           <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
           <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
           <Route path="/community/post/:id" element={<ProtectedRoute><PostDetails /></ProtectedRoute>} />
+          <Route path="/translate" element={<ProtectedRoute><CodeTranslator /></ProtectedRoute>} />
         </Routes>
       </Layout>
     </BrowserRouter>

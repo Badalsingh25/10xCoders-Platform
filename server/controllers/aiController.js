@@ -84,6 +84,79 @@ Use this structure (adapt if necessary, but keep it structured):
     }
 };
 
+
+
+/**
+ * @desc    Translate Code
+ * @route   POST /api/ai/translate
+ * @access  Private
+ */
+const translateCode = async (req, res) => {
+    const { sourceCode, sourceLang, targetLang, includeExplanation } = req.body;
+
+    if (!sourceCode) {
+        return res.status(400).json({ message: "Source code is required." });
+    }
+
+    try {
+        const prompt = `
+You are an expert software engineer and polyglot programmer.
+
+Task:
+Convert the provided source code from ${sourceLang} to ${targetLang}.
+
+Rules:
+1. Preserve the original logic and functionality exactly.
+2. Follow strict best practices and idiomatic syntax of ${targetLang} (the target language).
+3. Improve variable naming if the original is poor, but keep it recognizable.
+4. Add helpful comments explaining complex parts.
+5. Do NOT include any markdown code blocks (like \`\`\`) in the JSON output strings, just raw code string.
+
+${includeExplanation ? `Also provide a brief explanation of the key changes, focusing on syntax differences or language-specific idioms used.` : ''}
+
+Output strictly valid JSON in the following format:
+{
+  "sourceLanguage": "${sourceLang}",
+  "targetLanguage": "${targetLang}",
+  "convertedCode": "THE_TRANSLATED_CODE_HERE",
+  "explanation": "THE_EXPLANATION_HERE (optional)"
+}
+
+Source Code:
+${sourceCode}
+`;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+
+        // Clean up markdown if Gemini wraps json in ```json ... ```
+        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        let jsonResponse;
+        try {
+            jsonResponse = JSON.parse(cleanText);
+        } catch (e) {
+            // Fallback if JSON parsing fails - return raw text as code
+            jsonResponse = {
+                sourceLanguage: sourceLang,
+                targetLanguage: targetLang,
+                convertedCode: cleanText,
+                explanation: "Could not parse structured response."
+            };
+        }
+
+        res.status(200).json(jsonResponse);
+
+    } catch (error) {
+        console.error("AI Translation failed:", error);
+        res.status(500).json({
+            message: "AI translation failed.",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
-    askAI
+    askAI,
+    translateCode
 };
