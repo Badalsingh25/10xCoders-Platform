@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { Mic, Camera, Activity, Zap } from 'lucide-react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
@@ -509,8 +510,8 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
                 type="button"
                 onClick={() => setTopic(option)}
                 className={`px-4 py-2 rounded-full text-sm transition-all ${topic === option
-                    ? 'bg-purple-600 text-white shadow-lg'
-                    : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
                   }`}
               >
                 {option}
@@ -528,8 +529,8 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
                 type="button"
                 onClick={() => setDifficulty(level)}
                 className={`px-4 py-2 rounded-full text-sm transition-all ${difficulty === level
-                    ? 'bg-purple-600 text-white shadow-lg'
-                    : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
                   }`}
               >
                 {level}
@@ -557,8 +558,8 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
                 key={count}
                 onClick={() => setQuestionCount(count)}
                 className={`px-4 py-2 rounded-full transition-all ${questionCount === count
-                    ? 'bg-purple-600 text-white shadow-lg'
-                    : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
                   }`}
               >
                 {count} Questions
@@ -592,13 +593,54 @@ Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) a
     <div className="bg-white min-h-screen flex items-center justify-center p-8">
       <div className="w-full max-w-6xl grid grid-cols-12 gap-8">
 
-        <div className="col-span-6 bg-purple-100 rounded-lg overflow-hidden h-[600px] shadow-xl">
+        <div className="col-span-6 bg-slate-900 rounded-2xl overflow-hidden h-[600px] shadow-2xl relative border border-slate-800 group">
+          {/* Camera Feed */}
           <video
             ref={videoRef}
             autoPlay
             muted
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transform scale-x-[-1] opacity-90 group-hover:opacity-100 transition-opacity"
           />
+
+          {/* Overlay UI */}
+          <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 text-white border border-white/10">
+            <Camera size={14} className="text-red-500 animate-pulse" />
+            <span className="text-xs font-medium">Live Feed</span>
+          </div>
+
+          {/* Recording Visualizer Overlay */}
+          {isRecording && (
+            <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-[2px] flex flex-col items-center justify-end pb-12 transition-all">
+              <div className="bg-slate-900/90 border border-slate-700 p-6 rounded-3xl shadow-2xl flex items-center gap-6 mb-4 animate-in fade-in slide-in-from-bottom-10">
+
+                {/* Pulse Icon */}
+                <div className="relative">
+                  <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                  <div className="relative bg-red-600 p-4 rounded-full text-white shadow-lg">
+                    <Mic size={24} />
+                  </div>
+                </div>
+
+                {/* Waveform Animation */}
+                <div className="flex flex-col">
+                  <span className="text-white font-bold text-lg mb-1">Listening...</span>
+                  <div className="flex gap-1 h-6 items-end">
+                    {[...Array(8)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-1.5 bg-gradient-to-t from-red-500 to-orange-400 rounded-full animate-pulse"
+                        style={{
+                          height: `${Math.random() * 100}%`,
+                          animationDuration: `${0.5 + Math.random() * 0.5}s`
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <p className="text-white/80 font-medium text-sm bg-black/50 px-4 py-1 rounded-full">Speak clearly for best results</p>
+            </div>
+          )}
         </div>
 
         <div className="col-span-6 bg-purple-50 rounded-lg p-6 flex flex-col shadow-xl">

@@ -1,6 +1,6 @@
-// App.jsx
 import { useState } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import ReactMarkdown from 'react-markdown';
 
 // Replace with your actual API key
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -88,9 +88,12 @@ function App() {
         Question 5: ${questions[4]}
         Response: ${allResponses[4]}
         
-        Provide a detailed explanation (about 200-300 words) about why this career path is suitable for them based on their answers. Include specific skills they should develop, potential job roles they might enjoy, and learning resources they could explore. Make the recommendation personalized and constructive.
+        Provide a detailed explanation (about 300 words) about why this career path is suitable for them based on their answers. Include specific skills they should develop, potential job roles they might enjoy, and learning resources they could explore. Make the recommendation personalized and constructive.
         
-        IMPORTANT: Do not use asterisks (*) for formatting. Use plain text formatting only. For lists, use hyphen (-) or numbers instead.
+        Use Markdown for formatting:
+        - Use ## for main headings (e.g. ## Why Backend?)
+        - Use **bold** for emphasis
+        - Use bullet points for lists
       `;
 
       const result = await model.generateContent(prompt);
@@ -110,56 +113,18 @@ function App() {
   };
 
   const renderRecommendation = () => {
-    const sections = recommendation.split(/(?=##)/g);
-    
-    return sections.map((section, index) => {
-      if (section.startsWith('##')) {
-        const title = section.split('\n')[0].replace('##', '').trim();
-        const content = section.split('\n').slice(1).join('\n').trim();
-        
-        return (
-          <div key={index} className="mb-4">
-            <h3 className="text-lg font-semibold text-indigo-800 mb-2">{title}</h3>
-            <div className="pl-2">
-              {content.split('\n').map((para, i) => {
-                if (para.trim().startsWith('-')) {
-                  return (
-                    <div key={i} className="flex items-start mb-1">
-                      <div className="text-indigo-600 mr-2 mt-1">•</div>
-                      <div>{para.replace('-', '').trim()}</div>
-                    </div>
-                  );
-                }
-                return <p key={i} className="mb-2">{para}</p>;
-              })}
-            </div>
-          </div>
-        );
-      }
-      
-      return (
-        <div key={index} className="mb-4">
-          {section.split('\n').map((para, i) => {
-            if (para.trim().startsWith('-')) {
-              return (
-                <div key={i} className="flex items-start mb-1">
-                  <div className="text-indigo-600 mr-2 mt-1">•</div>
-                  <div>{para.replace('-', '').trim()}</div>
-                </div>
-              );
-            }
-            return para.trim() ? <p key={i} className="mb-2">{para}</p> : null;
-          })}
-        </div>
-      );
-    });
+    return (
+      <div className="prose prose-indigo max-w-none">
+        <ReactMarkdown>{recommendation}</ReactMarkdown>
+      </div>
+    );
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl">
         <h1 className="text-3xl font-bold text-center text-indigo-700 mb-8">Tech Career Path Finder</h1>
-        
+
         {!recommendation ? (
           <>
             <div className="mb-8">
@@ -168,13 +133,13 @@ function App() {
                 <span>{Math.round((currentStep / questions.length) * 100)}% Complete</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
-                <div 
-                  className="bg-indigo-600 h-3 rounded-full transition-all duration-500" 
+                <div
+                  className="bg-indigo-600 h-3 rounded-full transition-all duration-500"
                   style={{ width: `${(currentStep / questions.length) * 100}%` }}
                 ></div>
               </div>
             </div>
-            
+
             <div className="mb-8">
               <h2 className="text-xl font-medium text-gray-800 mb-4">{questions[currentStep]}</h2>
               <textarea
@@ -186,7 +151,7 @@ function App() {
               />
               <div className="text-xs text-gray-500 mt-2 text-right">Press Ctrl+Enter to continue</div>
             </div>
-            
+
             <div className="flex justify-between">
               {currentStep > 0 && (
                 <button

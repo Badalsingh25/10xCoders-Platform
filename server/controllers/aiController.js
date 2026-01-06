@@ -110,7 +110,7 @@ Rules:
 2. Follow strict best practices and idiomatic syntax of ${targetLang} (the target language).
 3. Improve variable naming if the original is poor, but keep it recognizable.
 4. Add helpful comments explaining complex parts.
-5. Do NOT include any markdown code blocks (like \`\`\`) in the JSON output strings, just raw code string.
+5. REQUIRED: Output strictly valid JSON. Do not add conversational text outside the JSON.
 
 ${includeExplanation ? `Also provide a brief explanation of the key changes, focusing on syntax differences or language-specific idioms used.` : ''}
 
@@ -129,41 +129,41 @@ ${sourceCode}
         const result = await model.generateContent(prompt);
         const text = result.response.text();
 
-        // Clean up markdown if Gemini wraps json in ```json ... ```
-        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
+        // Robust JSON extraction
         let jsonResponse;
         try {
-            jsonResponse = JSON.parse(cleanText);
+            // Find the first '{' and the last '}' to isolate JSON
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            const potentialJson = jsonMatch ? jsonMatch[0] : text;
+
+            jsonResponse = JSON.parse(potentialJson);
         } catch (e) {
-            // Fallback if JSON parsing fails - return raw text as code
+            console.error("JSON Parse Error in Translate:", e);
+            // Fallback: return raw text as code but try to clean it
+            const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
             jsonResponse = {
                 sourceLanguage: sourceLang,
                 targetLanguage: targetLang,
                 convertedCode: cleanText,
-                explanation: "Could not parse structured response."
+                explanation: "Could not parse structured response. Showing raw output."
             };
         }
 
-        // --- Log Activity for Progress Tracking ---
+        // --- Log Activity & Add Points ---
         try {
             const User = require('../models/userModel');
-            const user = await User.findById(req.user.id);
-            if (user) {
-                user.activityLog.push({
-                    action: 'code_translation',
-                    details: `Translated ${sourceLang} to ${targetLang}`,
-                    timestamp: new Date()
-                });
-
-                // Optional: Add gamification points for using tools
-                // user.gamification.points += 5; 
-
-                await user.save();
-            }
+            await User.findByIdAndUpdate(req.user.id, {
+                $push: {
+                    activityLog: {
+                        action: 'code_translation',
+                        details: `Translated ${sourceLang} to ${targetLang}`,
+                        timestamp: new Date()
+                    }
+                },
+                $inc: { 'gamification.points': 5 } // +5 XP per translation
+            });
         } catch (err) {
             console.error("Failed to log translation activity:", err);
-            // Don't block the response if logging fails
         }
 
         res.status(200).json(jsonResponse);

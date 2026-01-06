@@ -323,9 +323,12 @@ exports.getMe = async (req, res) => {
     };
 
     // --- Enhanced Stats from New Features ---
-    // --- Enhanced Stats from New Features ---
     const interviewCount = await InterviewAttempt.countDocuments({ userId: req.user.id });
     const typingCount = await TypingTest.countDocuments({ userId: req.user.id });
+
+    // Count Code Translations from Activity Log
+    const translationCount = user.activityLog ? user.activityLog.filter(a => a.action === 'code_translation').length : 0;
+
     // Fetch latest typing WPM
     // const lastTyping = await TypingTest.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
 
@@ -366,7 +369,7 @@ exports.getMe = async (req, res) => {
       });
     }
 
-    // 3. Add Activity Bonus (Interviews/Typing)
+    // 3. Add Activity Bonus (Interviews/Typing/Translation)
     if (interviewCount > 0) {
       realSkillMap['JavaScript'].bonus += 5;
       realSkillMap['React'].bonus += 5;
@@ -374,6 +377,12 @@ exports.getMe = async (req, res) => {
     }
     if (typingCount > 0) {
       realSkillMap['JavaScript'].bonus += 5; // Typing code helps syntax
+    }
+    if (translationCount > 0) {
+      // Converting code usually implies Backend/Logic understanding
+      realSkillMap['Backend'].bonus += (translationCount * 2);
+      realSkillMap['Python'].bonus += (translationCount * 1);
+      realSkillMap['Java'].bonus += (translationCount * 1);
     }
 
     // 4. Final Processing
@@ -402,6 +411,32 @@ exports.getMe = async (req, res) => {
     // But to avoid broken UI, we might keep an empty array or the fallback in frontend.
     userObj.dashboardStats.skills = finalSkills;
 
+    // --- DYNAMIC BADGES (Improve Badges Section) ---
+    // Check and award badges if not present
+    const currentBadges = user.gamification?.badges || [];
+    let badgesChanged = false;
+
+    const awardBadge = (badgeName) => {
+      if (!currentBadges.includes(badgeName)) {
+        currentBadges.push(badgeName);
+        badgesChanged = true;
+      }
+    };
+
+    if (interviewCount >= 1) awardBadge('Interview Rookie');
+    if (interviewCount >= 5) awardBadge('Interview Pro');
+    if (translationCount >= 3) awardBadge('Polyglot');
+    if (typingCount >= 5) awardBadge('Speed Typer');
+    if ((user.gamification?.points || 0) >= 100) awardBadge('Code Ninja');
+
+    // Persist new badges if changed
+    if (badgesChanged) {
+      user.gamification.badges = currentBadges;
+      // Don't await save here to avoid latency in getMe, just let it persist eventually or next generic save? 
+      // Actually, safer to await if we want immediate reflex
+      await User.findByIdAndUpdate(user._id, { 'gamification.badges': currentBadges });
+    }
+
     // Add Gamification Stats to dashboardStats
     userObj.dashboardStats.gamification = user.gamification || { points: 0, level: 'Beginner', badges: [] };
 
@@ -415,14 +450,18 @@ exports.getMe = async (req, res) => {
       recTitle = `Continue "${inProgress.title}"`;
       recSubtitle = `You are ${inProgress.progress}% there! Keep going to earn your certificate.`;
       recLink = "/courses";
+    } else if (translationCount > 0 && translationCount < 3) {
+      recTitle = "Translate More Code";
+      recSubtitle = "You're getting the hang of it! Try converting logic between Java and Python.";
+      recLink = "/features"; // Assuming /features has the card
     } else if (interviewCount > 0 && interviewCount < 5) {
       recTitle = "Practice More Interviews";
       recSubtitle = "You've started strong. Try a new topic to broaden your skills.";
-      recLink = "/practice";
+      recLink = "/practice/interview"; // Updated link
     } else if (user.courses.length > 0 && !inProgress) {
       recTitle = "Take a Skill Assessment";
       recSubtitle = "Prove your mastery by taking a quiz on your completed topics.";
-      recLink = "/quiz";
+      recLink = "/practice";
     }
 
     userObj.dashboardStats.recommendation = { title: recTitle, subtitle: recSubtitle, link: recLink };

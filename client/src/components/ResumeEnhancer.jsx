@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, Send, Briefcase, CheckCircle, Volume2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Initialize PDF.js worker
@@ -479,18 +480,15 @@ const EnhanceResume = () => {
             </button>
           </div>
 
-          <div className="bg-white p-8 rounded-xl border border-gray-200 w-full mb-8 prose max-w-none shadow-lg">
-            <div dangerouslySetInnerHTML={{
-              __html: result.replace(/^# (.*$)/gm, '<h2 class="text-2xl font-bold text-gray-800">$1</h2>')
-                .replace(/^## (.*$)/gm, '<h3 class="text-xl font-semibold text-gray-800">$1</h3>')
-                .replace(/^### (.*$)/gm, '<h4 class="text-lg font-medium text-gray-800">$1</h4>')
-                .replace(/\n/g, '<br>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-                .replace(/✅/g, '<span class="text-green-500">✅</span>')
-                .replace(/⚠️/g, '<span class="text-yellow-500">⚠️</span>')
-                .replace(/❌/g, '<span class="text-red-500">❌</span>')
-            }} />
+          <div className="bg-white p-8 rounded-xl border border-gray-200 w-full mb-8 shadow-lg overflow-hidden">
+            <ReactMarkdown
+              className="prose prose-lg max-w-none prose-headings:font-bold prose-h2:text-indigo-800 prose-h3:text-indigo-700 prose-p:text-gray-700 prose-strong:text-indigo-900 prose-li:text-gray-700"
+            >
+              {result
+                .replace(/✅/g, 'Checking... ✅') // Ensure emojis render well
+                .replace(/⚠️/g, 'Note: ⚠️')
+              }
+            </ReactMarkdown>
           </div>
 
           <div className="flex gap-4">

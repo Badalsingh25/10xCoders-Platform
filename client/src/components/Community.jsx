@@ -7,6 +7,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Helper for media URLs
+const getMediaUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('blob:')) return path;
+    const backend = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+    return `${backend}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
 const Community = () => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -176,9 +184,9 @@ const PostCard = ({ post, onUpvote }) => {
                         )}
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                             <img
-                                src={post.userId?.avatar ? post.userId.avatar.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : `https://ui-avatars.com/api/?name=${post.userId?.name}&background=random`}
+                                src={getMediaUrl(post.userId?.avatar) || `https://ui-avatars.com/api/?name=${post.userId?.name}&background=random`}
                                 alt=""
-                                className="w-5 h-5 rounded-full"
+                                className="w-5 h-5 rounded-full object-cover"
                             />
                             <span>{post.userId?.name || 'Anonymous'}</span>
                             <span>•</span>
@@ -195,7 +203,7 @@ const PostCard = ({ post, onUpvote }) => {
                         </p>
                         {post.imageUrl && (
                             <div className="mb-4 rounded-xl overflow-hidden max-h-60 w-full md:w-1/2 bg-slate-100">
-                                <img src={post.imageUrl.startsWith('http') ? post.imageUrl.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${post.imageUrl}`} alt="Doubt" className="w-full h-full object-cover" />
+                                <img src={getMediaUrl(post.imageUrl)} alt="Doubt" className="w-full h-full object-cover" />
                             </div>
                         )}
                     </Link>

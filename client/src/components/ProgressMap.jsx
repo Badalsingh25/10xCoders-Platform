@@ -34,14 +34,17 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
 
     // --- 3. Badges Data (Dynamic) ---
     // Calculate earned status based on real metrics
+    // --- 3. Badges Data (Dynamic) ---
+    // Calculate earned status based on real backend badges + some client-side fallbacks
+    const backendBadges = stats?.gamification?.badges || [];
+
     const badgesList = [
         { name: 'First Steps', icon: '🌱', earned: true, desc: 'Joined the platform' },
-        { name: 'Code Warrior', icon: '💻', earned: overallValue > 10, desc: 'Completed 10% Course' },
-        { name: 'Streak Master', icon: '🔥', earned: (stats?.streak?.current || 0) >= 7, desc: '7 Day Streak' },
-        { name: 'Polyglot', icon: '🌐', earned: (stats?.activityLog?.some(l => l.action === 'code_translation')) || false, desc: 'Translated Code' },
-        { name: 'Resume Builder', icon: '📄', earned: (stats?.savedResumes?.length > 0) || false, desc: 'Created a Resume' },
-        { name: 'Bug Hunter', icon: '🐛', earned: (stats?.gamification?.points || 0) > 50, desc: 'Earn 50 XP' },
-        { name: 'Interview Pro', icon: '🎙️', earned: (stats?.gamification?.points || 0) > 200, desc: 'Earn 200 XP' }
+        { name: 'Code Warrior', icon: '💻', earned: backendBadges.includes('Code Warrior') || overallValue > 10, desc: 'Complete 10% Course' },
+        { name: 'Polyglot', icon: '🌐', earned: backendBadges.includes('Polyglot'), desc: 'Translated 3+ Code Snippets' },
+        { name: 'Interview Pro', icon: '🎙️', earned: backendBadges.includes('Interview Pro'), desc: 'Completed 5+ Interviews' },
+        { name: 'Speed Typer', icon: '⌨️', earned: backendBadges.includes('Speed Typer'), desc: 'Completed 5+ Typing Tests' },
+        { name: 'Code Ninja', icon: '🥷', earned: backendBadges.includes('Code Ninja') || (stats?.gamification?.points || 0) >= 100, desc: 'Earned 100+ XP' }
     ];
 
     // If user has actual badges array from backend, merge/use them? 
