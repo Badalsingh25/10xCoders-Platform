@@ -255,8 +255,21 @@ exports.getMe = async (req, res) => {
         const dayStat = weeklyActivity.find(w => w.dateString === logDate);
         if (dayStat) {
           dayStat.count += 1;
-          // varying minutes based on action type, or default 15 mins per action
-          dayStat.minutes += (log.details && log.details.includes('course') ? 30 : 15);
+
+          // Realistic Weighting based on Action Type
+          let minutesToAdd = 15; // Default (e.g., login/visit)
+
+          if (log.action === 'studied_course') minutesToAdd = 30;
+          else if (log.action === 'completed_lesson') minutesToAdd = 45;
+          else if (log.action === 'coding_session') minutesToAdd = 25;
+          else if (log.action === 'interview_attempt') minutesToAdd = 20;
+          else if (log.action === 'typing_test') minutesToAdd = 10;
+          else if (log.action === 'code_translation') minutesToAdd = 5; // Quick tool usage
+          else if (log.action === 'created_resume') minutesToAdd = 20;
+          else if (log.action === 'uploaded_certificate') minutesToAdd = 5;
+          else if (log.action === 'pdf_tool_usage') minutesToAdd = 5;
+
+          dayStat.minutes += minutesToAdd;
         }
       });
     }
@@ -314,36 +327,80 @@ exports.getMe = async (req, res) => {
     const interviewCount = await InterviewAttempt.countDocuments({ userId: req.user.id });
     const typingCount = await TypingTest.countDocuments({ userId: req.user.id });
     // Fetch latest typing WPM
-    const lastTyping = await TypingTest.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
+    // const lastTyping = await TypingTest.findOne({ userId: req.user.id }).sort({ createdAt: -1 });
 
     // Calculate Points Influence
-    const points = user.gamification ? user.gamification.points : 0;
+    // const points = user.gamification ? user.gamification.points : 0;
 
-    // Defined Skill Set (Requested by User)
-    const breakdown = [
-      { name: 'HTML', base: 30, factor: 0.5 },
-      { name: 'CSS', base: 25, factor: 0.4 },
-      { name: 'JavaScript', base: 15, factor: 0.3 },
-      { name: 'React', base: 10, factor: 0.25 },
-      { name: 'Backend', base: 5, factor: 0.2 }
-    ];
+    // --- REALISTIC SKILL BREAKDOWN (No Static Data) ---
+    // If user has no courses, skills will be empty or minimal, showing 0%.
+    // We strictly use the `processedSkills` array calculated above from actual courses.
+    // We enrich it with colors and icons if needed.
 
-    userObj.dashboardStats.skills = breakdown.map(skill => {
-      // Boost if they have a related course
-      const courseBoost = user.courses.some(c => c.title && c.title.toLowerCase().includes(skill.name.toLowerCase())) ? 20 : 0;
-      // Boost by interview/typing
-      const extraBoost = (skill.name === 'Backend' && interviewCount > 0) ? 10 : (skill.name === 'JavaScript' && typingCount > 0) ? 5 : 0;
+    // Force re-calculate processedSkills to be robust
+    const realSkillMap = {};
+    // Base skills to track (but only show if progress > 0)
+    const trackedSkills = ['HTML', 'CSS', 'JavaScript', 'React', 'Backend', 'Python', 'Java', 'C++'];
 
-      const progress = Math.min(100, Math.round(skill.base + (points * skill.factor) + courseBoost + extraBoost));
+    // 1. Initialize with 0
+    trackedSkills.forEach(s => realSkillMap[s] = { total: 0, count: 0, bonus: 0 });
 
-      // Premium Colors
+    // 2. Aggregate from Courses
+    if (user.courses && user.courses.length > 0) {
+      user.courses.forEach(course => {
+        // Find matching skill category
+        const title = course.title || "";
+        let matched = false;
+        trackedSkills.forEach(skill => {
+          if (title.toLowerCase().includes(skill.toLowerCase())) {
+            realSkillMap[skill].total += course.progress;
+            realSkillMap[skill].count += 1;
+            matched = true;
+          }
+        });
+        // If "Web Development" or generic, split credit
+        if (!matched && title.toLowerCase().includes('web')) {
+          realSkillMap['HTML'].total += course.progress; realSkillMap['HTML'].count++;
+          realSkillMap['CSS'].total += course.progress; realSkillMap['CSS'].count++;
+        }
+      });
+    }
+
+    // 3. Add Activity Bonus (Interviews/Typing)
+    if (interviewCount > 0) {
+      realSkillMap['JavaScript'].bonus += 5;
+      realSkillMap['React'].bonus += 5;
+      realSkillMap['Backend'].bonus += 10;
+    }
+    if (typingCount > 0) {
+      realSkillMap['JavaScript'].bonus += 5; // Typing code helps syntax
+    }
+
+    // 4. Final Processing
+    const finalSkills = trackedSkills.map(name => {
+      const data = realSkillMap[name];
+      let calculated = 0;
+      if (data.count > 0) {
+        calculated = Math.round(data.total / data.count);
+      }
+      // Add bonus but cap at 100
+      calculated = Math.min(100, calculated + data.bonus);
+
+      // Determine Color
       let color = 'bg-slate-400';
-      if (progress >= 80) color = 'bg-yellow-500'; // Master
-      else if (progress >= 60) color = 'bg-emerald-500'; // Advanced
-      else if (progress >= 40) color = 'bg-indigo-500'; // Intermediate
+      if (calculated >= 80) color = 'bg-yellow-500';
+      else if (calculated >= 60) color = 'bg-emerald-500';
+      else if (calculated >= 40) color = 'bg-indigo-500';
+      else if (calculated > 0) color = 'bg-blue-500';
 
-      return { name: skill.name, progress, color };
-    });
+      return { name, progress: calculated, color };
+    }).filter(s => s.progress > 0) // ONLY show skills with >0 progress
+      .sort((a, b) => b.progress - a.progress);
+
+    // If absolutely no skills, show one placeholder saying "Start a Course"?
+    // Actually, user wants "realistic", so empty is realistic.
+    // But to avoid broken UI, we might keep an empty array or the fallback in frontend.
+    userObj.dashboardStats.skills = finalSkills;
 
     // Add Gamification Stats to dashboardStats
     userObj.dashboardStats.gamification = user.gamification || { points: 0, level: 'Beginner', badges: [] };

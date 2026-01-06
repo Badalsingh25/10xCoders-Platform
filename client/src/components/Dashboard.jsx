@@ -226,9 +226,11 @@ const Dashboard = () => {
                         </div>
                         <div className="hidden md:flex items-center gap-3 bg-white dark:bg-slate-800 p-2 pr-4 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
                             <img
-                                src={userData.avatar ? userData.avatar.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : `https://ui-avatars.com/api/?name=${userData.name}&background=6366f1&color=fff`}
+                                src={(userData.avatar && userData.avatar.startsWith('http'))
+                                    ? userData.avatar
+                                    : (userData.avatar ? `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${userData.avatar}` : `https://ui-avatars.com/api/?name=${userData.name}&background=6366f1&color=fff`)}
                                 alt="Profile"
-                                className="w-10 h-10 rounded-full"
+                                className="w-10 h-10 rounded-full object-cover"
                             />
                             <div className="text-sm">
                                 <p className="font-medium text-slate-900 dark:text-white">{userData.name}</p>

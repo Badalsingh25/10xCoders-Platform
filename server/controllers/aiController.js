@@ -145,6 +145,27 @@ ${sourceCode}
             };
         }
 
+        // --- Log Activity for Progress Tracking ---
+        try {
+            const User = require('../models/userModel');
+            const user = await User.findById(req.user.id);
+            if (user) {
+                user.activityLog.push({
+                    action: 'code_translation',
+                    details: `Translated ${sourceLang} to ${targetLang}`,
+                    timestamp: new Date()
+                });
+
+                // Optional: Add gamification points for using tools
+                // user.gamification.points += 5; 
+
+                await user.save();
+            }
+        } catch (err) {
+            console.error("Failed to log translation activity:", err);
+            // Don't block the response if logging fails
+        }
+
         res.status(200).json(jsonResponse);
 
     } catch (error) {

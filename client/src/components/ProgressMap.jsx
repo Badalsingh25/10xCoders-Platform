@@ -9,8 +9,8 @@ import { CheckCircle, Lock, Clock, Flame, Trophy, Zap, TrendingUp, BookOpen } fr
 const ProgressMap = ({ stats, isDashboard = false }) => {
 
     // --- 1. Overall Data (Circular) ---
-    // Rule: If stats exists, use it. If Dashboard & no stats, use 0. If Home & no stats, use Demo (68).
-    const overallValue = stats ? (stats.overallProgress ?? 0) : (isDashboard ? 0 : 68);
+    // If Dashboard, strict real data. For Home (public), keep demo (68).
+    const overallValue = isDashboard ? (stats?.overallProgress || 0) : 68;
 
     const overallData = [
         { name: 'Completed', value: overallValue, color: '#10b981' }, // Emerald-500
@@ -26,44 +26,26 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
         { name: 'System Design', progress: 30, color: 'bg-lime-500' },
     ];
 
-    // Use stats skills if available. If Dashboard & empty, use default breakdown.
-    const defaultBreakdown = [
-        { name: 'HTML', progress: 0 }, { name: 'CSS', progress: 0 }, { name: 'JavaScript', progress: 0 }, { name: 'React', progress: 0 }
-    ];
-    // Fix: If backend sends "General" (old logic), force default breakdown.
-    const rawSkills = stats?.skills?.length > 0 ? stats.skills : [];
-    const skills = (rawSkills.length === 1 && rawSkills[0].name === 'General') ? defaultBreakdown : (rawSkills.length > 0 ? rawSkills : (isDashboard ? defaultBreakdown : demoSkills));
+    // Real Skills
+    // If Dashboard & no skills, show empty is cleaner than fake "HTML 0%".
+    // But to avoid layout collapse, if empty, we can show a placeholder or just empty.
+    const skills = isDashboard ? (stats?.skills || []) : demoSkills;
 
-    // Smart Color Logic helper - Enforcing Green Theme
-    const getSkillColor = (progress) => {
-        if (progress >= 80) return 'bg-emerald-500';
-        if (progress >= 40) return 'bg-emerald-400';
-        return 'bg-emerald-300';
-    };
 
-    // --- 3. Roadmap Data ---
-    // For Dashboard, we ideally want dynamic status. For now, strictly for NEW users, we can default all to 'locked' or 'in-progress'.
-    // Since we don't have dynamic roadmap props yet, let's keep the static one but maybe reset it if overallValue is 0?
-    // User complained about "showing this even if I have not started".
-    // Let's make it smarter: If overallValue is 0, reset roadmap to step 1.
-
-    const defaultRoadmap = [
-        { step: 'HTML', status: 'completed' },
-        { step: 'CSS', status: 'completed' },
-        { step: 'JavaScript', status: 'in-progress' },
-        { step: 'React', status: 'locked' },
-        { step: 'Backend', status: 'locked' },
+    // --- 3. Badges Data (Dynamic) ---
+    // Calculate earned status based on real metrics
+    const badgesList = [
+        { name: 'First Steps', icon: '🌱', earned: true, desc: 'Joined the platform' },
+        { name: 'Code Warrior', icon: '💻', earned: overallValue > 10, desc: 'Completed 10% Course' },
+        { name: 'Streak Master', icon: '🔥', earned: (stats?.streak?.current || 0) >= 7, desc: '7 Day Streak' },
+        { name: 'Polyglot', icon: '🌐', earned: (stats?.activityLog?.some(l => l.action === 'code_translation')) || false, desc: 'Translated Code' },
+        { name: 'Resume Builder', icon: '📄', earned: (stats?.savedResumes?.length > 0) || false, desc: 'Created a Resume' },
+        { name: 'Bug Hunter', icon: '🐛', earned: (stats?.gamification?.points || 0) > 50, desc: 'Earn 50 XP' },
+        { name: 'Interview Pro', icon: '🎙️', earned: (stats?.gamification?.points || 0) > 200, desc: 'Earn 200 XP' }
     ];
 
-    const emptyRoadmap = [
-        { step: 'HTML', status: 'in-progress' }, // Start at step 1
-        { step: 'CSS', status: 'locked' },
-        { step: 'JavaScript', status: 'locked' },
-        { step: 'React', status: 'locked' },
-        { step: 'Backend', status: 'locked' },
-    ];
-
-    const roadmap = (isDashboard && overallValue === 0) ? emptyRoadmap : defaultRoadmap;
+    // If user has actual badges array from backend, merge/use them? 
+    // For now, calculating them client-side based on stats is robust enough for "realistic" feel without complex backend badge system.
 
     // --- 4. Weekly Activity Data ---
     const demoActivity = [
@@ -76,19 +58,7 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
         { day: 'Sun', minutes: 50 },
     ];
 
-    const zeroActivity = [
-        { day: 'Mon', minutes: 0 },
-        { day: 'Tue', minutes: 0 },
-        { day: 'Wed', minutes: 0 },
-        { day: 'Thu', minutes: 0 },
-        { day: 'Fri', minutes: 0 },
-        { day: 'Sat', minutes: 0 },
-        { day: 'Sun', minutes: 0 },
-    ];
-
-    const weeklyActivity = stats?.weeklyActivity && stats.weeklyActivity.length > 0
-        ? stats.weeklyActivity
-        : (isDashboard ? zeroActivity : demoActivity);
+    const weeklyActivity = isDashboard ? (stats?.weeklyActivity || []) : demoActivity;
 
     return (
         <section className={`${isDashboard ? '' : 'py-16'} bg-transparent transition-colors`} id="progress-map">
@@ -267,21 +237,14 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {/* Demo Badges Logic */}
-                            {[
-                                { name: 'First Steps', icon: '🌱', earned: true, desc: 'Joined the platform' },
-                                { name: 'Code Warrior', icon: '💻', earned: overallValue > 10, desc: 'Completed 10% Course' },
-                                { name: 'Streak Master', icon: '🔥', earned: false, desc: '7 Day Streak' },
-                                { name: 'Bug Hunter', icon: '🐛', earned: false, desc: 'Solve 5 Challenges' },
-                                { name: 'Interview Pro', icon: '🎙️', earned: stats?.gamification?.points > 100, desc: 'Earn 100 XP' }
-                            ].map((badge, idx) => (
+                            {badgesList.map((badge, idx) => (
                                 <div key={idx} className={`p-4 rounded-2xl border transition-all relative group
-                                    ${badge.earned
+                                     ${badge.earned
                                         ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/10 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-800/30'
                                         : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 grayscale opacity-70'}`}>
 
                                     <div className="text-3xl mb-3">{badge.icon}</div>
-                                    <h4 className={`font-bold text-sm mb-1 ${badge.earned ? 'text-slate-900 dark:text-yellow-100' : 'text-slate-500'}`}>
+                                    <h4 className={`font-bold text-sm mb-1 ${badge.earned ? 'text-slate-900 dark:text-yellow-100' : 'text-slate-500 text-slate-700 dark:text-slate-400'}`}>
                                         {badge.name}
                                     </h4>
                                     <p className="text-[10px] text-slate-500 leading-tight">{badge.desc}</p>

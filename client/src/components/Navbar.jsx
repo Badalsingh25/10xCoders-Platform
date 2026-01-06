@@ -167,6 +167,7 @@ const Navbar = () => {
         { name: 'Interview Prep', path: '/interview', icon: <MessageSquare size={18} className="text-purple-500" />, desc: 'Ace your interviews' },
         { name: 'Typing Speed', path: '/type', icon: <Code size={18} className="text-rose-500" />, desc: 'Improve typing skills' },
         { name: 'Coding Practice', path: '/code', icon: <Terminal size={18} className="text-emerald-500" />, desc: 'Real-world challenges' },
+        { name: 'Code Translator', path: '/translate', icon: <Bot size={18} className="text-rose-500" />, desc: 'Translate & Explain Code' },
         { name: 'Project Board', path: '/todo', icon: <Grid size={18} className="text-orange-500" />, desc: 'Manage your tasks' },
         { name: 'Progress Map', path: '#progress-map', icon: <Flame size={18} className="text-orange-500" />, desc: 'Visualize Learning', isScroll: true },
         { name: 'PDF Tools', path: '/pdf-tools', icon: <FileText size={18} className="text-pink-500" />, desc: 'Merge & manage docs' },
@@ -389,7 +390,9 @@ const Navbar = () => {
                                 >
                                     <img
                                         className="h-9 w-9 rounded-full border border-indigo-100 object-cover shadow-sm hover:shadow-md transition-shadow"
-                                        src={user.avatar ? user.avatar.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : `https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=fff`}
+                                        src={(user.avatar && user.avatar.startsWith('http'))
+                                            ? user.avatar
+                                            : (user.avatar ? `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${user.avatar}` : `https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=fff`)}
                                         alt=""
                                     />
                                 </button>

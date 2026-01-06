@@ -160,6 +160,17 @@ const Home = () => {
 
 
     {
+      title: "AI Code Translator",
+      description: "Instantly translate code between languages and get detailed explanations.",
+      color: "from-rose-500 to-red-600",
+      textColor: "text-rose-800",
+      bgColor: "bg-gradient-to-br from-rose-50 to-red-100",
+      icon: <Globe size={28} />,
+      link: "/translate",
+      category: "practice",
+      new: true
+    },
+    {
       title: "Courses",
       description: "Structured learning from beginner to advanced with expert instructors",
       color: "from-indigo-500 to-blue-500",
