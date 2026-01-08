@@ -55,6 +55,8 @@ const allowedOrigins = [
   'http://localhost:5001',
   'https://10xcoders.netlify.app',
   'https://www.10xcoders.netlify.app',
+  'https://10xcoders-platform.netlify.app',
+  'https://www.10xcoders-platform.netlify.app',
   process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, '') : null
 ].filter(Boolean);
 
