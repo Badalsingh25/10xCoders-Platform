@@ -14,6 +14,8 @@ const MachineCode = () => {
   const [showSolvedPopup, setShowSolvedPopup] = useState(false);
   const [stdin, setStdin] = useState('');
   const editorRef = useRef(null);
+  const [explanation, setExplanation] = useState('');
+  const [isExplaining, setIsExplaining] = useState(false);
 
   // Sample coding questions
   const codingQuestions = [
@@ -111,6 +113,39 @@ const MachineCode = () => {
         editorRef.current.selectionStart = start + 4;
         editorRef.current.selectionEnd = start + 4;
       }, 0);
+    }
+  };
+
+  const handleExplainError = async () => {
+    if (!error || !code) return;
+    setIsExplaining(true);
+    setExplanation('');
+
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+      const prompt = `I have a ${language} code snippet that is failing with the following error. Please explain why it failed and how to fix it.
+      
+      CODE:
+      ${code}
+      
+      ERROR:
+      ${error}
+      
+      Provide a concise explanation and the corrected code block.`;
+
+      const response = await axios.post(`${backendUrl}/api/ai/ask`, {
+        prompt: prompt,
+        context: 'code_tutor'
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      setExplanation(response.data.answer || response.data.response);
+    } catch (err) {
+      console.error("AI Explanation Failed:", err);
+      setExplanation("Failed to get explanation from AI.");
+    } finally {
+      setIsExplaining(false);
     }
   };
 
@@ -380,67 +415,91 @@ const MachineCode = () => {
             </button>
           </div>
 
-          <div className={`flex-1 flex flex-col p-4 font-mono text-sm overflow-hidden ${theme === 'dark' ? 'bg-[#0d1117] text-gray-300' : 'bg-white text-gray-900'}`}>
-            {/* Output Area (Scrollable) with Input at bottom */}
-            <div className="flex-1 overflow-auto mb-2 font-mono" id="terminal-output">
-              {outputHistory.map((entry, index) => (
-                <div key={index} className="mb-1">
-                  {entry.type === 'command' && (
-                    <div className="text-gray-500 text-xs mt-2 border-t border-gray-700 pt-1">$ {entry.content}</div>
-                  )}
-                  {entry.type === 'input' && (
-                    <div className="flex">
-                      <span className="mr-2 text-green-500 select-none">{'>'}</span>
-                      <div className="text-white font-bold">{entry.content}</div>
-                    </div>
-                  )}
-                  {entry.type === 'output' && (
-                    <pre className="whitespace-pre-wrap leading-tight pl-2 border-l-2 border-gray-700 ml-1">{entry.content}</pre>
-                  )}
-                </div>
-              ))}
-
-              {error && <div className="text-red-500 mb-1">{error}</div>}
-
-              {isRunning && (
-                <div className="flex items-center text-yellow-500 mt-2">
-                  <span className="animate-pulse mr-2">▶</span> Running...
-                </div>
-              )}
-
-              {/* Integrated Input Line */}
-              <div className={`flex items-start mt-2 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                <span className="mr-2 text-green-500 select-none animate-pulse">{'>'}</span>
-                <textarea
-                  className={`flex-1 bg-transparent resize-none outline-none font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}
-                  rows={1}
-                  value={stdin}
-                  onChange={(e) => setStdin(e.target.value)}
-                  onKeyDown={(e) => {
-                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                      // Prevent newline in textarea
-                      e.preventDefault();
-                      runCode();
-                    }
-                    // Allow submitting with just Enter if desired, but user kept the Ctrl+Enter prompt text from before.
-                    // Let's stick to Ctrl+Enter for safety or Enter?
-                    // User said "Then click ENTER then ,it will give the output".
-                    // Let's bind ENTER (without shift) to Run.
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      runCode();
-                    }
-                  }}
-                  placeholder="Type input..."
-                  spellCheck="false"
-                  autoFocus
-                />
+          <div className="flex-1 overflow-auto mb-2 font-mono" id="terminal-output">
+            {outputHistory.map((entry, index) => (
+              <div key={index} className="mb-1">
+                {entry.type === 'command' && (
+                  <div className="text-gray-500 text-xs mt-2 border-t border-gray-700 pt-1">$ {entry.content}</div>
+                )}
+                {entry.type === 'input' && (
+                  <div className="flex">
+                    <span className="mr-2 text-green-500 select-none">{'>'}</span>
+                    <div className="text-white font-bold">{entry.content}</div>
+                  </div>
+                )}
+                {entry.type === 'output' && (
+                  <pre className="whitespace-pre-wrap leading-tight pl-2 border-l-2 border-gray-700 ml-1">{entry.content}</pre>
+                )}
               </div>
+            ))}
 
-              {/* Auto scroll anchor */}
-              <div style={{ float: "left", clear: "both" }}
-                ref={(el) => { if (el) { el.scrollIntoView({ behavior: "smooth" }); } }}>
+            {error && (
+              <div className="mb-2 p-3 bg-red-900/20 border border-red-500/50 rounded-lg">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center text-red-400 font-semibold text-xs uppercase tracking-wider">
+                    <span className="mr-2">⚠️</span> Runtime/Compilation Error
+                  </div>
+                  <button
+                    onClick={handleExplainError}
+                    disabled={isExplaining}
+                    className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded shadow-sm flex items-center transition-all"
+                  >
+                    {isExplaining ? 'Analyzing...' : 'Why did this fail?'}
+                    <span className="ml-1 text-white/50">?</span>
+                  </button>
+                </div>
+                <pre className="text-red-300 whitespace-pre-wrap font-mono text-sm">{error}</pre>
               </div>
+            )}
+
+            {explanation && (
+              <div className={`mt-2 p-3 rounded-lg border ${theme === 'dark' ? 'bg-indigo-900/20 border-indigo-500/30' : 'bg-indigo-50 border-indigo-200'}`}>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-indigo-400 font-bold text-sm flex items-center">
+                    <span className="mr-2">🤖</span> AI Tutor Suggestion
+                  </h3>
+                  <button onClick={() => setExplanation('')} className="text-gray-500 hover:text-gray-300">×</button>
+                </div>
+                <div className={`prose prose-sm max-w-none ${theme === 'dark' ? 'prose-invert' : ''}`}>
+                  <p className="whitespace-pre-wrap text-sm opacity-90">{explanation}</p>
+                </div>
+              </div>
+            )}
+
+
+            {isRunning && (
+              <div className="flex items-center text-yellow-500 mt-2">
+                <span className="animate-pulse mr-2">▶</span> Running...
+              </div>
+            )}
+
+            {/* Integrated Input Line */}
+            <div className={`flex items-start mt-2 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+              <span className="mr-2 text-green-500 select-none animate-pulse">{'>'}</span>
+              <textarea
+                className={`flex-1 bg-transparent resize-none outline-none font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}
+                rows={1}
+                value={stdin}
+                onChange={(e) => setStdin(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    runCode();
+                  }
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    runCode();
+                  }
+                }}
+                placeholder="Type input..."
+                spellCheck="false"
+                autoFocus
+              />
+            </div>
+
+            {/* Auto scroll anchor */}
+            <div style={{ float: "left", clear: "both" }}
+              ref={(el) => { if (el) { el.scrollIntoView({ behavior: "smooth" }); } }}>
             </div>
           </div>
         </div>
