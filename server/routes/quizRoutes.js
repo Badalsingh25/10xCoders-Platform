@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// const { GoogleGenerativeAI } = require("@google/generative-ai"); // Removed
+const { generateContentWithFallback } = require('../utils/aiHelper');
 const { protect } = require('../middleware/authMiddleware');
 const QuizAttempt = require('../models/quizModel');
-
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // @desc    Generate a Quiz (Topic or Resume based)
 // @route   POST /api/quiz/generate
@@ -13,13 +11,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 router.post('/generate', protect, async (req, res) => {
     const { type, topic, difficulty, count = 5, resumeSkills } = req.body;
 
-    // Use environment variable or fallback to known working key (Debugging mechanism)
-    const apiKey = process.env.GEMINI_API_KEY;
-    const localGenAI = new GoogleGenerativeAI(apiKey);
-
     try {
-        const model = localGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
         let prompt = "";
 
         if (type === 'RESUME') {
@@ -60,21 +52,20 @@ router.post('/generate', protect, async (req, res) => {
             `;
         }
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text();
+        const text = await generateContentWithFallback(prompt);
 
         // Robust JSON cleanup
         const firstBracket = text.indexOf('[');
         const lastBracket = text.lastIndexOf(']');
+        let jsonStr = text;
 
         if (firstBracket !== -1 && lastBracket !== -1) {
-            text = text.substring(firstBracket, lastBracket + 1);
+            jsonStr = text.substring(firstBracket, lastBracket + 1);
         } else {
-            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
         }
 
-        const quizData = JSON.parse(text);
+        const quizData = JSON.parse(jsonStr);
 
         res.status(200).json(quizData);
 
@@ -132,10 +123,6 @@ router.post('/analyze', protect, async (req, res) => {
         }
 
         // Prepare prompt for AI
-        // Use environment variable or fallback to known working key (Debugging mechanism)
-        const apiKey = process.env.GEMINI_API_KEY;
-        const localGenAI = new GoogleGenerativeAI(apiKey);
-        const model = localGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const mistakesText = wrongAnswers.map(q => `Question: ${q.question} | Correct: ${q.correctAnswer}`).join('\n');
 
         const prompt = `
@@ -154,20 +141,20 @@ router.post('/analyze', protect, async (req, res) => {
             Do not include markdown.
         `;
 
-        const result = await model.generateContent(prompt);
-        let text = result.response.text();
+        const text = await generateContentWithFallback(prompt);
 
         // Robust JSON cleanup
         const firstBrace = text.indexOf('{');
         const lastBrace = text.lastIndexOf('}');
+        let jsonStr = text;
 
         if (firstBrace !== -1 && lastBrace !== -1) {
-            text = text.substring(firstBrace, lastBrace + 1);
+            jsonStr = text.substring(firstBrace, lastBrace + 1);
         } else {
-            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
         }
 
-        const analysis = JSON.parse(text);
+        const analysis = JSON.parse(jsonStr);
 
         res.status(200).json(analysis);
 

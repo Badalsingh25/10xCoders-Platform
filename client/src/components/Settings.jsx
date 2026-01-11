@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Camera, Save, Lock, User, Mail, Eye, EyeOff } from 'lucide-react';
+import API_URL from '../config/api';
 
 const Settings = () => {
     const [user, setUser] = useState({
@@ -21,7 +22,7 @@ const Settings = () => {
             const token = localStorage.getItem('token');
             if (!token) return;
             try {
-                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/me`, {
+                const res = await axios.get(`${API_URL}/api/users/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUser(prev => ({ ...prev, ...res.data, password: '' }));
@@ -71,7 +72,7 @@ const Settings = () => {
                 formData.append('avatar', user.avatar);
             }
 
-            const res = await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/profile`, formData, {
+            const res = await axios.put(`${API_URL}/api/users/profile`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
@@ -115,7 +116,7 @@ const Settings = () => {
                         <div className="flex flex-col items-center sm:flex-row gap-6">
                             <div className="relative group">
                                 <img
-                                    src={selectedFile ? URL.createObjectURL(selectedFile) : (user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${user.avatar}`) : `https://ui-avatars.com/api/?name=${user.name}`)}
+                                    src={selectedFile ? URL.createObjectURL(selectedFile) : (user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${API_URL}${user.avatar}`) : `https://ui-avatars.com/api/?name=${user.name}`)}
                                     alt="Profile"
                                     className="h-24 w-24 rounded-full object-cover border-4 border-slate-50 dark:border-slate-800 shadow-sm"
                                 />

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Plus, Trash2, GripHorizontal, Share2, Loader } from "lucide-react";
 import axios from "axios";
+import API_URL from '../config/api';
 
 const KanbanBoard = () => {
   const [tasks, setTasks] = useState({
@@ -21,7 +22,7 @@ const KanbanBoard = () => {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/todos`, config);
+      const { data } = await axios.get(`${API_URL}/api/todos`, config);
 
       const newTasks = {
         todo: [],
@@ -61,7 +62,7 @@ const KanbanBoard = () => {
     try {
       const token = localStorage.getItem("token");
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/todos/${taskId}`, { status: newStatus }, config);
+      await axios.put(`${API_URL}/api/todos/${taskId}`, { status: newStatus }, config);
     } catch (err) {
       console.error("Error updating task:", err);
       // Revert state if needed (not implementing revert here for brevity)
@@ -127,7 +128,7 @@ const KanbanBoard = () => {
         const token = localStorage.getItem("token");
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
-        const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/todos`, {
+        const { data } = await axios.post(`${API_URL}/api/todos`, {
           text: newTaskContent,
           status: column
         }, config);
@@ -151,7 +152,7 @@ const KanbanBoard = () => {
     try {
       const token = localStorage.getItem("token");
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/todos/${taskId}`, config);
+      await axios.delete(`${API_URL}/api/todos/${taskId}`, config);
 
       setTasks(prev => ({
         ...prev,

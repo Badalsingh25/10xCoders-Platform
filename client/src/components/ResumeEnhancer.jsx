@@ -1,17 +1,22 @@
 import React, { useState, useRef } from 'react';
+import axios from 'axios';
 import { Upload, FileText, Send, Briefcase, CheckCircle, Volume2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Initialize PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+import API_URL from '../config/api';
+// Initialize PDF.js worker
+// Use specific version matching package.json (4.10.38) to avoid mismatches
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs`;
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const extractTextFromPDF = async (pdfBuffer) => {
   try {
     // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({ data: pdfBuffer });
+    // Fix for detached ArrayBuffer issue: Clone the buffer
+    const loadingTask = pdfjsLib.getDocument({ data: pdfBuffer.slice(0) });
     const pdf = await loadingTask.promise;
     let fullText = '';
 
@@ -191,35 +196,25 @@ const EnhanceResume = () => {
         Do not include any other analysis besides the ATS score and keyword matching analysis.`;
       }
 
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': GEMINI_API_KEY
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: promptText
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.2,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048,
-          }
-        })
+      // Use backend proxy for AI
+      const backendUrl = API_URL;
+      const response = await axios.post(`${backendUrl}/api/ai/ask`, {
+        context: 'GENERAL', // Use GENERAL so we can control the exact prompt
+        prompt: promptText
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-        setResult(data.candidates[0].content.parts[0].text);
+      // The backend returns { answer: text, context: ... }
+      if (data && data.answer) {
+        setResult(data.answer);
       } else {
-        throw new Error('Invalid response from Gemini API');
+        throw new Error('Invalid response from AI Backend');
       }
 
+      // Skip the old "data.candidates" check as backend handles extraction
       setStep(4);
     } catch (error) {
       console.error("Error processing with Gemini API:", error);
@@ -480,10 +475,8 @@ const EnhanceResume = () => {
             </button>
           </div>
 
-          <div className="bg-white p-8 rounded-xl border border-gray-200 w-full mb-8 shadow-lg overflow-hidden">
-            <ReactMarkdown
-              className="prose prose-lg max-w-none prose-headings:font-bold prose-h2:text-indigo-800 prose-h3:text-indigo-700 prose-p:text-gray-700 prose-strong:text-indigo-900 prose-li:text-gray-700"
-            >
+          <div className="bg-white p-8 rounded-xl border border-gray-200 w-full mb-8 shadow-lg overflow-hidden prose prose-lg max-w-none prose-headings:font-bold prose-h2:text-indigo-800 prose-h3:text-indigo-700 prose-p:text-gray-700 prose-strong:text-indigo-900 prose-li:text-gray-700">
+            <ReactMarkdown>
               {result
                 .replace(/✅/g, 'Checking... ✅') // Ensure emojis render well
                 .replace(/⚠️/g, 'Note: ⚠️')

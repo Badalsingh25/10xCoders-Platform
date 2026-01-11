@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Editor from "@monaco-editor/react";
 import axios from "axios";
 import { ArrowRight, Copy, Check, Sparkles, Download, Code2, AlertTriangle, Loader2, RefreshCw, Zap } from 'lucide-react';
+import API_URL from '../config/api';
 
 const languages = [
     { label: "Java", value: "java" },
@@ -32,7 +33,7 @@ const CodeTranslator = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/ai/translate`,
+            const res = await axios.post(`${API_URL}/api/ai/translate`,
                 {
                     sourceCode,
                     sourceLang,

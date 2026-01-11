@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import axios from 'axios';
+import API_URL from '../config/api';
 import ProgressMap from "./ProgressMap";
 import {
   ArrowRight,
@@ -75,7 +76,7 @@ const Home = () => {
           Authorization: `Bearer ${token}`
         }
       };
-      const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/me`, config);
+      const { data } = await axios.get(`${API_URL}/api/users/me`, config);
       if (data && data.dashboardStats) {
         setUserStats(data.dashboardStats);
       }

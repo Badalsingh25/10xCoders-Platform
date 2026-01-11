@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const dotenv = require('dotenv').config();
+const dotenv = require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const colors = require('colors');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -43,7 +43,20 @@ app.use(passport.session());
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "img-src": ["'self'", "data:", "blob:", "https:", "*"],
+      "media-src": ["'self'", "data:", "blob:", "https:", "*"],
+      "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "https://www.youtube.com", "https://s.ytimg.com"],
+      "connect-src": ["'self'", "https:", "ws:", "http://localhost:5001"],
+      "frame-src": ["'self'", "https://www.youtube.com"],
+      "worker-src": ["'self'", "blob:", "https://cdnjs.cloudflare.com"]
+    }
+  }
+}));
 
 // Middleware
 app.use(express.json());

@@ -7,6 +7,7 @@ import {
     Upload, X, Mic, StopCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import API_URL from '../config/api';
 
 const PostDetails = () => {
     const { id } = useParams();
@@ -21,15 +22,19 @@ const PostDetails = () => {
     const getMediaUrl = (path) => {
         if (!path) return null;
         if (path.startsWith('http') || path.startsWith('blob:')) return path;
+
+        // Normalize slashes for Windows paths
+        const cleanPath = path.replace(/\\/g, '/');
+
         // If it's a relative path from backend (e.g., /uploads/...)
-        const backend = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
-        return `${backend}${path.startsWith('/') ? '' : '/'}${path}`;
+        const backend = API_URL;
+        return `${backend}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
     };
 
     const fetchDetails = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/posts/${id}`, {
+            const res = await axios.get(`${API_URL}/api/community/posts/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setPost(res.data.post);
@@ -48,7 +53,7 @@ const PostDetails = () => {
     const handlePostVote = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/vote`,
+            const res = await axios.put(`${API_URL}/api/community/vote`,
                 { id: post._id, type: 'post' },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -61,7 +66,7 @@ const PostDetails = () => {
     const handleAnswerVote = async (answerId) => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/vote`,
+            const res = await axios.put(`${API_URL}/api/community/vote`,
                 { id: answerId, type: 'answer' },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -144,7 +149,7 @@ const PostDetails = () => {
                 formData.append('audio', audioBlob, 'voice-note.webm');
             }
 
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/answers`,
+            await axios.post(`${API_URL}/api/community/answers`,
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -165,7 +170,7 @@ const PostDetails = () => {
         setGeneratingAI(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/generate-answer/${id}`,
+            await axios.post(`${API_URL}/api/community/generate-answer/${id}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );

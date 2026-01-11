@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Award, Brain, Clock, ChevronRight, CheckCircle, XCircle, AlertCircle, Loader, RefreshCw, FileText, Code } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import API_URL from '../config/api';
 
 const Quiz = () => {
     // Steps: 'setup', 'loading', 'quiz', 'analyzing', 'results'
@@ -44,7 +45,7 @@ const Quiz = () => {
         setStep('loading');
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/quiz/generate`, config, {
+            const res = await axios.post(`${API_URL}/api/quiz/generate`, config, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setQuizData(res.data);
@@ -84,7 +85,7 @@ const Quiz = () => {
 
         try {
             // 1. Get AI Analysis
-            const analyzeRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/quiz/analyze`, {
+            const analyzeRes = await axios.post(`${API_URL}/api/quiz/analyze`, {
                 topic: config.topic || "Skills Assessment",
                 questions: quizData,
                 userAnswers: answers
@@ -94,7 +95,7 @@ const Quiz = () => {
             setAnalysis({ ...analysisResult, score, correctCount });
 
             // 2. Save Result
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/quiz/submit`, {
+            await axios.post(`${API_URL}/api/quiz/submit`, {
                 topic: config.topic || "Resume Skills",
                 difficulty: config.difficulty,
                 score,

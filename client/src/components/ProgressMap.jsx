@@ -9,8 +9,8 @@ import { CheckCircle, Lock, Clock, Flame, Trophy, Zap, TrendingUp, BookOpen } fr
 const ProgressMap = ({ stats, isDashboard = false }) => {
 
     // --- 1. Overall Data (Circular) ---
-    // If Dashboard, strict real data. For Home (public), keep demo (68).
-    const overallValue = isDashboard ? (stats?.overallProgress || 0) : 68;
+    // Use real stats if provided (Logged In), otherwise show Demo data (Logged Out)
+    const overallValue = stats ? (stats.overallProgress || 0) : 68;
 
     const overallData = [
         { name: 'Completed', value: overallValue, color: '#10b981' }, // Emerald-500
@@ -27,13 +27,9 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
     ];
 
     // Real Skills
-    // If Dashboard & no skills, show empty is cleaner than fake "HTML 0%".
-    // But to avoid layout collapse, if empty, we can show a placeholder or just empty.
-    const skills = isDashboard ? (stats?.skills || []) : demoSkills;
+    const skills = stats ? (stats.skills || []) : demoSkills;
 
 
-    // --- 3. Badges Data (Dynamic) ---
-    // Calculate earned status based on real metrics
     // --- 3. Badges Data (Dynamic) ---
     // Calculate earned status based on real backend badges + some client-side fallbacks
     const backendBadges = stats?.gamification?.badges || [];
@@ -47,9 +43,6 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
         { name: 'Code Ninja', icon: '🥷', earned: backendBadges.includes('Code Ninja') || (stats?.gamification?.points || 0) >= 100, desc: 'Earned 100+ XP' }
     ];
 
-    // If user has actual badges array from backend, merge/use them? 
-    // For now, calculating them client-side based on stats is robust enough for "realistic" feel without complex backend badge system.
-
     // --- 4. Weekly Activity Data ---
     const demoActivity = [
         { day: 'Mon', minutes: 45 },
@@ -61,7 +54,7 @@ const ProgressMap = ({ stats, isDashboard = false }) => {
         { day: 'Sun', minutes: 50 },
     ];
 
-    const weeklyActivity = isDashboard ? (stats?.weeklyActivity || []) : demoActivity;
+    const weeklyActivity = stats ? (stats.weeklyActivity || []) : demoActivity;
 
     return (
         <section className={`${isDashboard ? '' : 'py-16'} bg-transparent transition-colors`} id="progress-map">

@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
+import API_URL from '../config/api';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -74,7 +75,7 @@ const Navbar = () => {
 
     const fetchUser = async (token) => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/me`, {
+            const res = await axios.get(`${API_URL}/api/users/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUser(res.data);
@@ -105,7 +106,7 @@ const Navbar = () => {
         try {
             const token = localStorage.getItem('token');
             if (token) {
-                await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/notifications/read`, {}, {
+                await axios.put(`${API_URL}/api/users/notifications/read`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
@@ -392,7 +393,7 @@ const Navbar = () => {
                                         className="h-9 w-9 rounded-full border border-indigo-100 object-cover shadow-sm hover:shadow-md transition-shadow"
                                         src={(user.avatar && user.avatar.startsWith('http'))
                                             ? user.avatar
-                                            : (user.avatar ? `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${user.avatar}` : `https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=fff`)}
+                                            : (user.avatar ? `${API_URL}${user.avatar}` : `https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=fff`)}
                                         alt=""
                                     />
                                 </button>

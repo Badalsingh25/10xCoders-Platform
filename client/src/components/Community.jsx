@@ -6,12 +6,13 @@ import {
     Search, Filter, Clock, ChevronUp, Bot, Sparkles, X, Loader
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import API_URL from '../config/api';
 
 // Helper for media URLs
 const getMediaUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http') || path.startsWith('blob:')) return path;
-    const backend = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+    const backend = API_URL;
     return `${backend}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
@@ -26,7 +27,7 @@ const Community = () => {
     const fetchPosts = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/posts`, {
+            const res = await axios.get(`${API_URL}/api/community/posts`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setPosts(res.data);
@@ -44,7 +45,7 @@ const Community = () => {
     const handleUpvote = async (id, type = 'post') => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/vote`,
+            await axios.put(`${API_URL}/api/community/vote`,
                 { id, type },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -238,7 +239,7 @@ const AskQuestionModal = ({ isOpen, onClose, onRefresh }) => {
             const token = localStorage.getItem('token');
             const tagArray = tags.split(',').map(t => t.trim());
 
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/posts`,
+            await axios.post(`${API_URL}/api/community/posts`,
                 { title, description: desc, tags: tagArray },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -306,7 +307,7 @@ const AIDoubtSolverModal = ({ isOpen, onClose, onRefresh }) => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/ai-solve`,
+            await axios.post(`${API_URL}/api/community/ai-solve`,
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import API_URL from '../config/api';
 
 // Gemini API key (replace this with environment variable in production)
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -45,28 +46,19 @@ const PersonalizedRoadmap = () => {
         (Include any relevant information, tips, or resources that would be helpful)
       `;
 
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': GEMINI_API_KEY
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048
-          }
-        })
+      // Use backend proxy for AI
+      const backendUrl = API_URL;
+      const token = localStorage.getItem('token'); // Get token for auth
+
+      const response = await axios.post(`${backendUrl}/api/ai/ask`, {
+        context: 'ROADMAP_GEN',
+        prompt: prompt
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error.message || 'Error generating roadmap');
-      }
-
-      const roadmapText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const data = response.data;
+      const roadmapText = data.answer;
 
       if (!roadmapText) {
         throw new Error('No roadmap was generated');
@@ -78,7 +70,7 @@ const PersonalizedRoadmap = () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/features/roadmap`, {
+          await axios.post(`${API_URL}/api/features/roadmap`, {
             roadmap: roadmapText,
             currentStep: 'generated',
             completedSteps: []
@@ -308,10 +300,10 @@ const PersonalizedRoadmap = () => {
                 >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${step > num
-                        ? 'bg-indigo-600 text-white'
-                        : step === num
-                          ? 'bg-white border-2 border-indigo-600 text-indigo-600'
-                          : 'bg-gray-200 text-gray-500'
+                      ? 'bg-indigo-600 text-white'
+                      : step === num
+                        ? 'bg-white border-2 border-indigo-600 text-indigo-600'
+                        : 'bg-gray-200 text-gray-500'
                       }`}
                   >
                     {num}
@@ -353,8 +345,8 @@ const PersonalizedRoadmap = () => {
               onClick={nextStep}
               disabled={!isStepComplete() || (step === 4 && loading)}
               className={`px-6 py-3 rounded-lg shadow font-medium text-white transition-colors ${isStepComplete()
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
-                  : 'bg-gray-400 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
+                : 'bg-gray-400 cursor-not-allowed'
                 }`}
             >
               {step === 4

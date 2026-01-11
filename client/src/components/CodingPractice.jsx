@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css'; // or any style you want, e.g. atom-one-dark
+import API_URL from '../config/api';
+
 
 const MachineCode = () => {
   const [code, setCode] = useState('#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}');
@@ -122,7 +127,7 @@ const MachineCode = () => {
     setExplanation('');
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+      const backendUrl = API_URL;
       const prompt = `I have a ${language} code snippet that is failing with the following error. Please explain why it failed and how to fix it.
       
       CODE:
@@ -135,15 +140,16 @@ const MachineCode = () => {
 
       const response = await axios.post(`${backendUrl}/api/ai/ask`, {
         prompt: prompt,
-        context: 'code_tutor'
+        context: 'CODE_EXPLANATION'
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
 
       setExplanation(response.data.answer || response.data.response);
     } catch (err) {
-      console.error("AI Explanation Failed:", err);
-      setExplanation("Failed to get explanation from AI.");
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to get explanation from AI.";
+      console.error("AI Explanation Failed:", errorMessage);
+      setExplanation(`Error: ${errorMessage}`);
     } finally {
       setIsExplaining(false);
     }
@@ -165,7 +171,7 @@ const MachineCode = () => {
     setOutputHistory(prev => [...prev, commandEntry]);
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+      const backendUrl = API_URL;
       const response = await fetch(`${backendUrl}/api/judge/execute`, {
         method: 'POST',
         headers: {
@@ -296,7 +302,7 @@ const MachineCode = () => {
     // Update every 30 seconds (0.5 minutes = 0.5/60 = 1/120 hours)
     const interval = setInterval(async () => {
       try {
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+        const backendUrl = API_URL;
         await axios.put(`${backendUrl}/api/users/coding-hours`, {
           hours: 1 / 120
         }, {
@@ -461,7 +467,7 @@ const MachineCode = () => {
                   <button onClick={() => setExplanation('')} className="text-gray-500 hover:text-gray-300">×</button>
                 </div>
                 <div className={`prose prose-sm max-w-none ${theme === 'dark' ? 'prose-invert' : ''}`}>
-                  <p className="whitespace-pre-wrap text-sm opacity-90">{explanation}</p>
+                  <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{explanation}</ReactMarkdown>
                 </div>
               </div>
             )}

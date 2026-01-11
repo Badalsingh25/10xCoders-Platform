@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import API_URL from '../config/api';
 
 const TypingTest = () => {
   // State variables
@@ -153,7 +154,7 @@ const TypingTest = () => {
         try {
           const token = localStorage.getItem('token');
           if (token) {
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/features/typing`, {
+            await axios.post(`${API_URL}/api/features/typing`, {
               wpm,
               accuracy
             }, {
@@ -346,10 +347,10 @@ const TypingTest = () => {
                   <span
                     key={index}
                     className={`word mr-2 mb-2 px-1 rounded ${index === currentWordIndex
-                        ? `active ${theme.text} font-bold`
-                        : index < currentWordIndex
-                          ? `${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`
-                          : `${currentTheme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`
+                      ? `active ${theme.text} font-bold`
+                      : index < currentWordIndex
+                        ? `${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`
+                        : `${currentTheme === 'dark' ? 'text-gray-100' : 'text-gray-700'}`
                       }`}
                   >
                     {word}

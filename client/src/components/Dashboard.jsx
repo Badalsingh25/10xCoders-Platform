@@ -20,6 +20,7 @@ import {
     MoreVertical,
     Trash2
 } from 'lucide-react';
+import API_URL from '../config/api';
 
 const Dashboard = () => {
     const [userData, setUserData] = useState(null);
@@ -65,10 +66,10 @@ const Dashboard = () => {
     const fetchUserData = async (token) => {
         try {
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/me`, config);
+            const response = await axios.get(`${API_URL}/api/users/me`, config);
             setUserData(response.data);
 
-            const postsRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/community/unanswered`, config);
+            const postsRes = await axios.get(`${API_URL}/api/community/unanswered`, config);
             setUnansweredPosts(postsRes.data);
 
             setLoading(false);
@@ -104,7 +105,7 @@ const Dashboard = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             };
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/resume`, formData, config);
+            await axios.post(`${API_URL}/api/users/resume`, formData, config);
 
             await fetchUserData(localStorage.getItem('token'));
             setShowResumeModal(false);
@@ -130,7 +131,7 @@ const Dashboard = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             };
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/certificate`, formData, config);
+            await axios.post(`${API_URL}/api/users/certificate`, formData, config);
 
             await fetchUserData(localStorage.getItem('token'));
             setShowCertificateModal(false);
@@ -152,7 +153,7 @@ const Dashboard = () => {
         if (!window.confirm("Are you sure you want to delete this item?")) return;
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/${type}/${id}`, {
+            await axios.delete(`${API_URL}/api/users/${type}/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             await fetchUserData(token);
@@ -228,7 +229,7 @@ const Dashboard = () => {
                             <img
                                 src={(userData.avatar && userData.avatar.startsWith('http'))
                                     ? userData.avatar
-                                    : (userData.avatar ? `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}${userData.avatar}` : `https://ui-avatars.com/api/?name=${userData.name}&background=6366f1&color=fff`)}
+                                    : (userData.avatar ? `${API_URL}${userData.avatar}` : `https://ui-avatars.com/api/?name=${userData.name}&background=6366f1&color=fff`)}
                                 alt="Profile"
                                 className="w-10 h-10 rounded-full object-cover"
                             />
@@ -275,13 +276,13 @@ const Dashboard = () => {
                             {/* Continue Learning & Questions Waiting */}
                             <section className="grid md:grid-cols-2 gap-6">
                                 {/* Continue Learning Widget */}
-                                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 max-h-[400px] overflow-y-auto custom-scrollbar">
+                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 sticky top-0 bg-inherit z-10 pb-2 border-b border-transparent">
                                         <Clock className="text-indigo-500" size={20} /> Continue Learning
                                     </h2>
                                     {coursesInProgress.length > 0 ? (
                                         <div className="space-y-4">
-                                            {coursesInProgress.slice(0, 2).map((course, idx) => (
+                                            {coursesInProgress.map((course, idx) => (
                                                 <div key={idx} onClick={() => navigate('/courses')} className="cursor-pointer group relative">
                                                     <div className="flex justify-between text-sm mb-1">
                                                         <span className="font-medium text-slate-700 dark:text-slate-300">{course.title}</span>
@@ -414,26 +415,33 @@ const Dashboard = () => {
                                 </div>
                                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-3">
                                     {userData.savedResumes && userData.savedResumes.length > 0 ? (
-                                        userData.savedResumes.slice(0, 5).map((resume, idx) => (
-                                            <div key={idx} onClick={() => window.open(resume.data?.fileUrl ? resume.data.fileUrl.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : '#', '_blank')} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-600 transition cursor-pointer group relative">
-                                                <div className="flex items-center gap-3 overflow-hidden">
-                                                    <FileText size={18} className="text-slate-400 dark:text-slate-500 group-hover:text-indigo-500 flex-shrink-0" />
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-indigo-900 dark:group-hover:text-indigo-400 truncate">{resume.title || `Resume ${idx + 1}`}</span>
+                                        userData.savedResumes.slice(0, 5).map((resume, idx) => {
+                                            const fileUrl = resume.data?.fileUrl || '#';
+                                            const fullUrl = fileUrl.startsWith('http')
+                                                ? fileUrl
+                                                : `${API_URL}${fileUrl}`;
+
+                                            return (
+                                                <div key={idx} onClick={() => window.open(fullUrl, '_blank')} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-600 transition cursor-pointer group relative">
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <FileText size={18} className="text-slate-400 dark:text-slate-500 group-hover:text-indigo-500 flex-shrink-0" />
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-indigo-900 dark:group-hover:text-indigo-400 truncate">{resume.title || `Resume ${idx + 1}`}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <button onClick={(e) => toggleMenu(e, resume._id)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-500 rounded-full transition opacity-0 group-hover:opacity-100">
+                                                            <MoreVertical size={16} className="text-slate-400 dark:text-slate-300" />
+                                                        </button>
+                                                        {openMenuId === resume._id && (
+                                                            <div className="absolute right-2 top-8 bg-white dark:bg-slate-800 shadow-lg rounded-lg py-1 z-50 border border-slate-100 dark:border-slate-700 w-24">
+                                                                <button onClick={(e) => handleDelete(e, 'resume', resume._id)} className="flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left">
+                                                                    <Trash2 size={12} /> Delete
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <button onClick={(e) => toggleMenu(e, resume._id)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-500 rounded-full transition opacity-0 group-hover:opacity-100">
-                                                        <MoreVertical size={16} className="text-slate-400 dark:text-slate-300" />
-                                                    </button>
-                                                    {openMenuId === resume._id && (
-                                                        <div className="absolute right-2 top-8 bg-white dark:bg-slate-800 shadow-lg rounded-lg py-1 z-50 border border-slate-100 dark:border-slate-700 w-24">
-                                                            <button onClick={(e) => handleDelete(e, 'resume', resume._id)} className="flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left">
-                                                                <Trash2 size={12} /> Delete
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))
+                                            )
+                                        })
                                     ) : (
                                         <div className="text-center py-4">
                                             <p className="text-sm text-slate-500 mb-3">No saved resumes</p>
@@ -450,26 +458,33 @@ const Dashboard = () => {
                                 </div>
                                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-3">
                                     {userData.certificates && userData.certificates.length > 0 ? (
-                                        userData.certificates.slice(0, 3).map((cert, idx) => (
-                                            <div key={idx} onClick={() => window.open(cert.fileUrl ? cert.fileUrl.replace('http://localhost:5001', import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001') : '#', '_blank')} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-600 transition cursor-pointer group relative">
-                                                <div className="flex items-center gap-3 overflow-hidden">
-                                                    <Award size={18} className="text-emerald-500 flex-shrink-0" />
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-emerald-900 dark:group-hover:text-emerald-400 truncate">{cert.title || `Certificate ${idx + 1}`}</span>
+                                        userData.certificates.slice(0, 3).map((cert, idx) => {
+                                            const fileUrl = cert.fileUrl || '#';
+                                            const fullUrl = fileUrl.startsWith('http')
+                                                ? fileUrl
+                                                : `${API_URL}${fileUrl}`;
+
+                                            return (
+                                                <div key={idx} onClick={() => window.open(fullUrl, '_blank')} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-600 transition cursor-pointer group relative">
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <Award size={18} className="text-emerald-500 flex-shrink-0" />
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-emerald-900 dark:group-hover:text-emerald-400 truncate">{cert.title || `Certificate ${idx + 1}`}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <button onClick={(e) => toggleMenu(e, cert._id)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-500 rounded-full transition opacity-0 group-hover:opacity-100">
+                                                            <MoreVertical size={16} className="text-slate-400 dark:text-slate-300" />
+                                                        </button>
+                                                        {openMenuId === cert._id && (
+                                                            <div className="absolute right-2 top-8 bg-white dark:bg-slate-800 shadow-lg rounded-lg py-1 z-50 border border-slate-100 dark:border-slate-700 w-24">
+                                                                <button onClick={(e) => handleDelete(e, 'certificate', cert._id)} className="flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left">
+                                                                    <Trash2 size={12} /> Delete
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <button onClick={(e) => toggleMenu(e, cert._id)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-500 rounded-full transition opacity-0 group-hover:opacity-100">
-                                                        <MoreVertical size={16} className="text-slate-400 dark:text-slate-300" />
-                                                    </button>
-                                                    {openMenuId === cert._id && (
-                                                        <div className="absolute right-2 top-8 bg-white dark:bg-slate-800 shadow-lg rounded-lg py-1 z-50 border border-slate-100 dark:border-slate-700 w-24">
-                                                            <button onClick={(e) => handleDelete(e, 'certificate', cert._id)} className="flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left">
-                                                                <Trash2 size={12} /> Delete
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))
+                                            )
+                                        })
                                     ) : (
                                         <div className="text-center py-4">
                                             <p className="text-sm text-slate-500 mb-3">No certificates uploaded</p>

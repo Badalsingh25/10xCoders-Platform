@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import API_URL from '../config/api';
 
 import { Search, Mic, Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, Code, Server, Database, Cloud, Globe, Terminal } from 'lucide-react';
 
@@ -180,7 +181,7 @@ const TechEducationPlatform = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await axios.put(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/users/course-progress`, {
+        await axios.put(`${API_URL}/api/users/course-progress`, {
           courseId: filteredVideos[index].id.videoId,
           title: filteredVideos[index].snippet.title,
           progress: 1, // Started

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '../config/api';
 import { Mic, Camera, Activity, Zap } from 'lucide-react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -31,7 +32,7 @@ const InterviewPrep = () => {
   const [speechError, setSpeechError] = useState('');
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
 
-  const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+  // const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
   const topicOptions = [
     'Core CS Fundamentals',
@@ -85,12 +86,9 @@ const InterviewPrep = () => {
   const generateInterviewQuestions = async () => {
     setIsLoading(true);
     try {
-      if (!genAI) {
-        alert("AI features are not configured. Please set VITE_GEMINI_API_KEY in your environment.");
-        return;
-      }
-
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      // Use backend proxy
+      const backendUrl = API_URL;
+      const token = localStorage.getItem('token');
 
       const selectedTopic = topic || 'general interview preparation';
       const selectedDifficulty = difficulty || 'mixed beginner to intermediate';
@@ -111,10 +109,16 @@ For each question, provide:
 
 Format the output as a JSON array of question objects, where each object has exactly one property: "question" (a string with the question text). Do not include any other text before or after the JSON.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response.text();
+      const response = await axios.post(`${backendUrl}/api/ai/ask`, {
+        context: 'GENERAL',
+        prompt: prompt
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-      const jsonMatch = response.match(/\[.*\]/s);
+      const responseText = response.data.answer;
+
+      const jsonMatch = responseText.match(/\[.*\]/s);
       if (jsonMatch) {
         try {
           const questions = JSON.parse(jsonMatch[0]);
@@ -136,7 +140,7 @@ Format the output as a JSON array of question objects, where each object has exa
       }
     } catch (error) {
       console.error("Question Generation Error:", error);
-      alert("Failed to generate questions. Please check your API key and try again.");
+      alert("Failed to generate questions. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -249,12 +253,9 @@ Format the output as a JSON array of question objects, where each object has exa
 
     setIsHintLoading(true);
     try {
-      if (!genAI) {
-        alert("AI features are not configured. Please set VITE_GEMINI_API_KEY in your environment.");
-        return;
-      }
+      const backendUrl = API_URL;
+      const token = localStorage.getItem('token');
 
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const currentQuestion = generatedQuestions[currentQuestionIndex].question;
       const selectedTopic = topic || 'general interview preparation';
       const selectedDifficulty = difficulty || 'mixed beginner to intermediate';
@@ -272,12 +273,18 @@ Provide:
 
 Format your response with bold headings (e.g., **Hint:** and **Ideal Answer:**). Avoid using * characters except for these bold markers.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response.text();
+      const response = await axios.post(`${backendUrl}/api/ai/ask`, {
+        context: 'GENERAL',
+        prompt: prompt
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const responseText = response.data.answer;
 
       setHints(prev => {
         const updated = [...prev];
-        updated[currentQuestionIndex] = response;
+        updated[currentQuestionIndex] = responseText;
         return updated;
       });
       setShowHint(true);
@@ -329,12 +336,9 @@ Format your response with bold headings (e.g., **Hint:** and **Ideal Answer:**).
   const evaluateAnswer = async () => {
     setIsLoading(true);
     try {
-      if (!genAI) {
-        setAiEvaluation("AI features are not configured. Please set VITE_GEMINI_API_KEY in your environment.");
-        return;
-      }
+      const backendUrl = API_URL;
+      const token = localStorage.getItem('token');
 
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const currentQuestion = generatedQuestions[currentQuestionIndex].question;
 
       const prompt = `Evaluate this answer to the interview question: "${currentQuestion}"
@@ -349,8 +353,14 @@ Please provide a comprehensive evaluation with:
 
 Format your response in a clear, constructive manner that helps the interviewee understand their performance. Use bold text for headings (e.g., **Key Strengths Demonstrated:**) and ensure the response is well-formatted in points. Do not use * marks.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response.text();
+      const response = await axios.post(`${backendUrl}/api/ai/ask`, {
+        context: 'GENERAL',
+        prompt: prompt
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const responseText = response.data.answer;
 
       // Persist the current answer for this question
       setUserAnswers(prev => {
@@ -361,7 +371,7 @@ Format your response in a clear, constructive manner that helps the interviewee 
 
       // Try to parse a numeric relevance score (0-10) from the AI response
       let parsedScore = null;
-      const scoreMatch = response.match(/Relevance Score[^0-9]*([0-9]{1,2})/i);
+      const scoreMatch = responseText.match(/Relevance Score[^0-9]*([0-9]{1,2})/i);
       if (scoreMatch) {
         const numericScore = parseInt(scoreMatch[1], 10);
         if (!Number.isNaN(numericScore)) {
@@ -376,16 +386,15 @@ Format your response in a clear, constructive manner that helps the interviewee 
           return updated;
         });
       }
-      setAiEvaluation(response);
+      setAiEvaluation(responseText);
 
       // Save to Database
       try {
-        const token = localStorage.getItem('token');
         if (token && parsedScore !== null) {
-          await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/features/interview`, {
+          await axios.post(`${backendUrl}/api/features/interview`, {
             question: currentQuestion,
             score: parsedScore,
-            feedback: response
+            feedback: responseText
           }, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -404,12 +413,8 @@ Format your response in a clear, constructive manner that helps the interviewee 
   const generateOverallFeedback = async () => {
     setIsLoading(true);
     try {
-      if (!genAI) {
-        alert("AI features are not configured. Please set VITE_GEMINI_API_KEY in your environment.");
-        return;
-      }
-
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const backendUrl = API_URL;
+      const token = localStorage.getItem('token');
 
       const averageScore = getAverageScore();
       const averageScoreText = averageScore !== null ? averageScore.toFixed(1) : 'N/A';
@@ -441,9 +446,15 @@ Please provide:
 
 Format the response with bold headings (e.g., **Key Strengths Demonstrated:**) and ensure it is well-formatted in points. Do not use * marks.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response.text();
-      setOverallFeedback(response);
+      const response = await axios.post(`${backendUrl}/api/ai/ask`, {
+        context: 'GENERAL',
+        prompt: prompt
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const responseText = response.data.answer;
+      setOverallFeedback(responseText);
       setStage('overall-feedback');
     } catch (error) {
       console.error("Overall Feedback Generation Error:", error);

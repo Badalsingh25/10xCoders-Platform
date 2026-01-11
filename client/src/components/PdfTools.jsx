@@ -4,6 +4,7 @@ import { PDFDocument } from "pdf-lib";
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist/build/pdf.mjs";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { Upload, Trash2, FileText, Download } from "lucide-react";
+import API_URL from '../config/api';
 
 GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -297,7 +298,7 @@ const PdfTools = () => {
       return;
     }
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
+    const backendUrl = API_URL;
 
     const formData = new FormData();
     formData.append("file", backendFile);

@@ -3,7 +3,8 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// const { GoogleGenerativeAI } = require("@google/generative-ai"); // Removed local init
+const { generateContentWithFallback } = require('../utils/aiHelper');
 const { protect } = require('../middleware/authMiddleware');
 const Post = require('../models/postModel');
 const Answer = require('../models/answerModel');
@@ -26,11 +27,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-
-// Initialize Gemini
-// Fallback key logic similar to quizRoutes
-const apiKey = process.env.GEMINI_API_KEY;
-const localGenAI = new GoogleGenerativeAI(apiKey);
 
 // Helper to convert file to GenerativePart
 function fileToGenerativePart(path, mimeType) {
@@ -233,9 +229,6 @@ router.post('/ai-solve', protect, upload.single('image'), async (req, res) => {
         const mimeType = req.file.mimetype;
         const imageUrl = `/uploads/${req.file.filename}`; // Serve URL for frontend
 
-        // 1. Vision API - Extract Question
-        const model = localGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
         const prompt = `
             You are an expert OCR and Tech Assistant.
             1. Analyze the uploaded image.
@@ -250,23 +243,23 @@ router.post('/ai-solve', protect, upload.single('image'), async (req, res) => {
         `;
 
         const imagePart = fileToGenerativePart(imagePath, mimeType);
-        const result = await model.generateContent([prompt, imagePart]);
-        const response = await result.response;
-        let text = response.text();
+        // Use centralized helper
+        const text = await generateContentWithFallback([prompt, imagePart]);
 
         if (!text) throw new Error("Empty response from AI");
 
         // Robust JSON cleanup
         const firstBrace = text.indexOf('{');
         const lastBrace = text.lastIndexOf('}');
+        let jsonStr = text;
 
         if (firstBrace !== -1 && lastBrace !== -1) {
-            text = text.substring(firstBrace, lastBrace + 1);
+            jsonStr = text.substring(firstBrace, lastBrace + 1);
         } else {
-            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
         }
 
-        const aiData = JSON.parse(text);
+        const aiData = JSON.parse(jsonStr);
 
         // 2. Create Community Post (BUT NO ANSWER YET)
         const post = await Post.create({
@@ -296,14 +289,7 @@ router.post('/generate-answer/:postId', protect, async (req, res) => {
         const post = await Post.findById(req.params.postId);
         if (!post) return res.status(404).json({ message: "Post not found" });
 
-        const model = localGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-        let prompt;
-        // Construct prompt based on if it has image or just text
-        // (For now, simplified to text-based prompt unless we re-read image, which is complex. 
-        //  We will use post description which likely contains extracted text for image posts, or user text)
-
-        prompt = `
+        let prompt = `
             You are an expert tutor.
             The student has asked: "${post.title}"
             Details: "${post.description}"
@@ -313,18 +299,16 @@ router.post('/generate-answer/:postId', protect, async (req, res) => {
         `;
 
         if (post.imageUrl) {
-            // If we could access the image again efficiently we would. 
-            // For now relying on the description which was extracted from OCR is usually sufficient.
             prompt += `\n (Context: The user also uploaded an image relating to this query)`;
         }
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
+        // Use centralized helper
+        const text = await generateContentWithFallback(prompt);
 
         // Create the Answer
         const answer = await Answer.create({
             postId: post._id,
-            userId: req.user.id, // Or special AI user if possible. Attributing to req.user for "You used AI"
+            userId: req.user.id,
             text: text,
             isAI: true
         });
